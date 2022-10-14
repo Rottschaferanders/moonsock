@@ -1,16 +1,6 @@
 use serde::de::DeserializeOwned;
 use serde::{Serialize, Deserialize};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
 // From this very helpful article: https://blog.dzejkop.space/serde-by-example-1/
 
 /// ---------------------- Response Deserializing ------------------------
