@@ -1,6 +1,8 @@
 use serde::de::DeserializeOwned;
 use serde::{Serialize, Deserialize};
 
+mod connection;
+
 // From this very helpful article: https://blog.dzejkop.space/serde-by-example-1/
 
 /// ---------------------- Response Deserializing ------------------------
