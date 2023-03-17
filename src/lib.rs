@@ -1,7 +1,7 @@
 use serde::de::DeserializeOwned;
 use serde::{Serialize, Deserialize};
 
-mod connection;
+pub mod connection;
 
 // From this very helpful article: https://blog.dzejkop.space/serde-by-example-1/
 
