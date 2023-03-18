@@ -3,6 +3,9 @@ use serde::{Serialize, Deserialize};
 
 pub mod connection;
 
+// Exports:
+pub use connection::MoonConnection;
+
 // From this very helpful article: https://blog.dzejkop.space/serde-by-example-1/
 
 /// ---------------------- Response Deserializing ------------------------

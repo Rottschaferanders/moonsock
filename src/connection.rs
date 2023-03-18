@@ -25,8 +25,8 @@ impl MoonConnection {
     /// # Returns
     ///
     /// A new `MoonConnection` instance.
-    pub async fn new(url: String) -> MoonConnection {
-        let (ws_writer_sender, mut ws_writer_receiver) = tokio::sync::mpsc::channel(1000);
+    pub async fn new(url: String, writer_buffer_size: usize, reader_buffer_size: usize) -> MoonConnection {
+        let (ws_writer_sender, mut ws_writer_receiver) = tokio::sync::mpsc::channel(writer_buffer_size);
         let connect_addr = Url::parse(&url).unwrap();
         let (ws_stream, _) = match connect_async(&connect_addr).await {
             Ok(stuff) => stuff,
@@ -50,21 +50,23 @@ impl MoonConnection {
             }
         });
         println!("Split websocket Stream");
-        let (ws_reader_sender, ws_reader_receiver) = tokio::sync::mpsc::channel(10000);
+        let (ws_reader_sender, ws_reader_receiver) = tokio::sync::mpsc::channel(reader_buffer_size);
         println!("Created Reader Runtime");
         // Spawns Moonraker Websocket reader thread
         tokio::spawn(async move {
             while let Some(message) = moon_socket_stream.next().await {
                 match message {
                     Ok(msg) => {
-                        let parsed: Result<MoonMSG, _> =
-                            serde_json::from_str(&msg.into_text().unwrap());
+                        println!("----------------------------MESSAGE RECEIVED----------------------------");
+                        let message = msg.into_text().unwrap();
+                        println!("Received: {}", message);
+                        let parsed = serde_json::from_str(&message);
                         match parsed {
                             Ok(message) => match ws_reader_sender.send(message).await {
                                 Ok(()) => continue,
                                 Err(_) => println!("Unable to send to ws_reader_sender"),
                             },
-                            Err(_) => println!("Unable to parse One (1) Message, this is expected"),
+                            Err(_) => println!("Unable to parse above message"),
                         }
                     }
                     Err(_) => println!("Hi, I'm a error"),
