@@ -183,3 +183,30 @@ fn notify_proc_stat_update_two() {
     let serialized: MoonMSG = serde_json::from_str(&message).unwrap();
     assert_eq!(*serialized.method(), MoonMethod::NotifyProcStatUpdate);
 }
+
+#[test]
+fn notify_cpu_throttled() {
+    let message = r##"{
+        "jsonrpc": "2.0", 
+        "method": "notify_cpu_throttled", 
+        "params": [
+            {
+                "bits": 327680, 
+                "flags": [
+                    "Previously Under-Volted", 
+                    "Previously Throttled"
+                ]
+            }
+        ]
+    }"##;
+    let serialized: MoonMSG = serde_json::from_str(&message).unwrap();
+    match serialized.params()[0].clone() {
+        MoonParam::NotifyCpuThrottled { bits, flags } => {
+            assert_eq!(bits, 327680);
+            assert_eq!(flags[0], "Previously Under-Volted");
+            assert_eq!(flags[1], "Previously Throttled");
+        }
+        _ => assert!(false, "ERROR: Did not parse params as MoonParam::NotifyCpuThrottled"),
+    }
+    assert_eq!(*serialized.method(), MoonMethod::NotifyCpuThrottled);
+}

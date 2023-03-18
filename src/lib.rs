@@ -45,11 +45,22 @@ pub enum ResultDef<T, E> {
     Err(E),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum MoonResultData {
+    #[serde(rename = "ok")]
+    Ok,
+
+}
 /// ---------------------- Request Serializing ------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum MoonMSG {
+    MoonResult {
+        jsonrpc: JsonRpcVersion,
+        result: MoonResultData,
+        id: u32,
+    },
     MoonError {
         jsonrpc: JsonRpcVersion,
         error: MoonError,
@@ -202,6 +213,9 @@ impl MoonMSG {
     }
     pub fn method(&self) ->  &MoonMethod {
         match self {
+            MoonMSG::MoonResult { result, .. } => {
+                panic!("No method on type MoonMSG::MoonResult: {:?}", result);
+            },
             MoonMSG::MoonError { error, .. } => {
                 panic!("Error: {:?}", error);
             },
@@ -230,6 +244,9 @@ impl MoonMSG {
     }
     pub fn params(&self) -> Vec<MoonParam> {
         match self {
+            MoonMSG::MoonResult { result, .. } => {
+                panic!("No params on type MoonMSG::MoonResult: {:?}", result);
+            },
             MoonMSG::MoonError {..} => {
                 panic!("MoonError has no params");
             },

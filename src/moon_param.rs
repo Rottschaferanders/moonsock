@@ -26,6 +26,10 @@ pub enum MoonParam {
         system_memory: SystemMemory,
         websocket_connections: u64,
     },
+    NotifyCpuThrottled {
+        bits: u64,
+        flags: Vec<String>,
+    },
     NotifyGcodeResponse( String ),
     GcodeScript {
         script: String,

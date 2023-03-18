@@ -57,16 +57,19 @@ impl MoonConnection {
             while let Some(message) = moon_socket_stream.next().await {
                 match message {
                     Ok(msg) => {
-                        println!("----------------------------MESSAGE RECEIVED----------------------------");
                         let message = msg.into_text().unwrap();
-                        println!("Received: {}", message);
+                        // println!("Received: {}", message);
                         let parsed = serde_json::from_str(&message);
                         match parsed {
                             Ok(message) => match ws_reader_sender.send(message).await {
                                 Ok(()) => continue,
                                 Err(_) => println!("Unable to send to ws_reader_sender"),
                             },
-                            Err(_) => println!("Unable to parse above message"),
+                            Err(_) => {
+                                println!("----------------------------MESSAGE NOT PARSED----------------------------");
+                                println!("{}", message);
+                                println!("--------------------------------------------------------------------------");
+                            },
                         }
                     }
                     Err(_) => println!("Hi, I'm a error"),
