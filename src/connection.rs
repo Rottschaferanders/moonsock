@@ -61,7 +61,7 @@ impl MoonConnection {
                             continue;
                         }
                         let message = msg.into_text().unwrap();
-                        // println!("Received: {}", message);
+                        println!("Received: {}", message);
                         let parsed = serde_json::from_str(&message);
                         match parsed {
                             Ok(message) => match ws_reader_sender.send(message).await {
@@ -155,7 +155,7 @@ impl MoonConnection {
                         MoonMSG::MoonResult { id, result, .. } => {
                             if id == this_id {
                                 match result {
-                                    MoonResultData::Ok => {
+                                    MoonResultData::Ok(..) => {
                                         return Ok(());
                                     }
                                     _ => continue,

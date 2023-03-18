@@ -22,12 +22,6 @@ pub use moon_param::MoonParam;
 //     pub id: u32,
 // }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum JsonRpcVersion {
-    #[serde(rename = "2.0")]
-    V2_0
-}
-
 // #[derive(Debug, Clone, Serialize, Deserialize)]
 // pub struct ResponseError {
 //     pub code: i32,
@@ -44,6 +38,12 @@ pub enum JsonRpcVersion {
 //     Err(E),
 // }
 /// ---------------------- Request Serializing ------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum JsonRpcVersion {
+    #[serde(rename = "2.0")]
+    V2_0
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
@@ -123,7 +123,7 @@ pub enum MoonMSG {
         params: serde_json::Value,
     },
     Empty,
-
+}
     // I think this is useless, but I don't want to scan through the moonraker API docs again.
     // NotRecognized { value: serde_json::Value },
     // ConnectionID { connection_id: u32 },
@@ -169,7 +169,6 @@ pub enum MoonMSG {
     //     api_version: [u32; 3],
     //     api_version_string: String,
     // }
-}
 
 // extruder: {
 //     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1],
@@ -185,31 +184,169 @@ pub enum MoonMSG {
 //     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1]
 // }
 
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum MoonResultData {
+pub enum MoonOk {
     #[serde(rename = "ok")]
     Ok,
-    ServerTemperatureStore {
-        #[serde(flatten)]
-        items: Vec<TemperatureStoreItems>,
-    },
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum TemperatureStoreItems {
-    Extruder {
+#[serde(untagged)]
+pub enum MoonResultData {
+    #[serde(alias = "ok")]
+    Ok(MoonOk),
+    TemperatureStore(TemperatureStore),
+}
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// #[serde(untagged)]
+// pub enum MoonResultData {
+//     // #[serde(rename = "ok")]
+//     #[serde(alias = "ok")]
+//     Ok(MoonOk),
+//     // #[serde(flatten)]
+//     ServerTemperatureStore([TemperatureStoreItems; 2]),
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub enum MoonResultData {
+//     #[serde(alias = "ok")]
+//     Ok(MoonOk),
+//     #[serde(rename = "heater_bed")]
+//     HeaterBed(TemperatureStoreItems),
+//     #[serde(rename = "extruder")]
+//     Extruder(TemperatureStoreItems),
+//     #[serde(rename = "temperature_fan")]
+//     TemperatureFan(TemperatureStoreItems),
+//     #[serde(rename = "temperature_sensor")]
+//     TemperatureSensor(TemperatureStoreItems),
+// }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum TempStoreData {
+    // #[serde(rename = "heater_bed")]
+    TempTgtsPowers {
         temperatures: Vec<f32>,
         targets: Vec<f32>,
         powers: Vec<f32>,
     },
-    TemperatureFan {
-        temperatures: Vec<f32>,
-        targets: Vec<f32>,
-        speeds: Vec<f32>,
-    },
-    TemperatureSensor {
+    // #[serde(rename = "extruder")]
+    // Extruder {
+    //     temperatures: Vec<f32>,
+    //     targets: Vec<f32>,
+    //     powers: Vec<f32>,
+    // },
+    // #[serde(rename = "temperature_fan")]
+    // TemperatureFan {
+    //     temperatures: Vec<f32>,
+    //     targets: Vec<f32>,
+    //     speeds: Vec<f32>,
+    // },
+    // #[serde(rename = "temperature_sensor")]
+    Temp {
         temperatures: Vec<f32>,
     },
 }
+
+// The names of the items in the temperature store
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum HeaterNames {
+    #[serde(rename = "heater_bed")]
+    HeaterBed,
+    #[serde(rename = "extruder")]
+    Extruder,
+    #[serde(rename = "extruder1")]
+    Extruder1,
+    #[serde(rename = "extruder2")]
+    Extruder2,
+    #[serde(rename = "extruder3")]
+    Extruder3,
+    #[serde(rename = "extruder4")]
+    Extruder4,
+    #[serde(rename = "extruder5")]
+    Extruder5,
+    #[serde(rename = "extruder6")]
+    Extruder6,
+    #[serde(rename = "extruder7")]
+    Extruder7,
+    #[serde(rename = "extruder8")]
+    Extruder8,
+    #[serde(rename = "extruder9")]
+    Extruder9,
+    #[serde(rename = "extruder10")]
+    Extruder10,
+    #[serde(rename = "temperature_fan")]
+    TemperatureFan,
+    #[serde(rename = "temperature_sensor")]
+    TemperatureSensor,
+    NameStr(String),
+}
+use std::collections::HashMap;
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TemperatureStore {
+    #[serde(flatten)]
+    pub items: HashMap<HeaterNames, TempStoreData>,
+}
+
+impl TemperatureStore {
+    pub fn new() -> Self {
+        Self {
+            items: HashMap::new(),
+        }
+    }
+    pub fn add_to_hashmap(&mut self, key: HeaterNames, value: TempStoreData)  {
+        self.items.insert(key, value);
+    }
+}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// #[serde(untagged)]
+// pub enum TemperatureStoreItems {
+//     HeaterBed {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         powers: Vec<f32>,
+//     },
+//     Extruder {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         powers: Vec<f32>,
+//     },
+//     TemperatureFan {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         speeds: Vec<f32>,
+//     },
+//     TemperatureSensor {
+//         temperatures: Vec<f32>,
+//     }
+// }
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub enum TemperatureStoreItems {
+//     #[serde(rename = "heater_bed")]
+//     HeaterBed {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         powers: Vec<f32>,
+//     },
+//     #[serde(rename = "extruder")]
+//     Extruder {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         powers: Vec<f32>,
+//     },
+//     #[serde(rename = "temperature_fan")]
+//     TemperatureFan {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         speeds: Vec<f32>,
+//     },
+//     #[serde(rename = "temperature_sensor")]
+//     TemperatureSensor {
+//         temperatures: Vec<f32>,
+//     }
+// }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MoonErrorContent {
