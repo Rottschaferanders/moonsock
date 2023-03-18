@@ -171,10 +171,44 @@ pub enum MoonMSG {
     // }
 }
 
+// extruder: {
+//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1],
+//     "targets": [0, 0, 0, 0, 0],
+//     "powers": [0, 0, 0, 0, 0]
+// },
+// "temperature_fan my_fan": {
+//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1],
+//     "targets": [0, 0, 0, 0, 0],
+//     "speeds": [0, 0, 0, 0, 0],
+// },
+// "temperature_sensor my_sensor": {
+//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1]
+// }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum MoonResultData {
     #[serde(rename = "ok")]
     Ok,
+    ServerTemperatureStore {
+        #[serde(flatten)]
+        items: TemperatureStoreItems,
+    },
+}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum TemperatureStoreItems {
+    Extruder {
+        temperatures: Vec<f32>,
+        targets: Vec<f32>,
+        powers: Vec<f32>,
+    },
+    TemperatureFan {
+        temperatures: Vec<f32>,
+        targets: Vec<f32>,
+        speeds: Vec<f32>,
+    },
+    TemperatureSensor {
+        temperatures: Vec<f32>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
