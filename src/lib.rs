@@ -346,6 +346,25 @@ impl MoonMSG {
             },
         }
     }
+    pub fn id(&self) -> Option<u32> {
+        match self {
+            MoonMSG::MoonResult { id, .. } => Some(id.clone()),
+            MoonMSG::MoonError { id, .. } => Some(id.clone()),
+            MoonMSG::MethodParamID { id, .. } => Some(id.clone()),
+            MoonMSG::MethodParamVecID { id, .. } => Some(id.clone()),
+            MoonMSG::MethodID { id, .. } => Some(id.clone()),
+            MoonMSG::MethodParam {..} => None,
+            MoonMSG::MethodParamVec {..} => None,
+            MoonMSG::Method {..} => None,
+            MoonMSG::CouldNotParseParams {..} => None,
+            MoonMSG::CouldNotParseParamsID {id, ..} => Some(id.clone()),
+            MoonMSG::CouldNotParseMethod {..} => None,
+            MoonMSG::CouldNotParseMethodID {id, ..} => Some(id.clone()),
+            MoonMSG::CouldNotParseMethodParams {..} => None,
+            MoonMSG::CouldNotParseMethodParamsID {id, ..} => Some(id.clone()),
+            MoonMSG::Empty => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -156,13 +156,33 @@ impl MoonConnection {
                             if id == this_id {
                                 match result {
                                     MoonResultData::Ok => {
-                                        return Ok(())
+                                        return Ok(());
                                     }
                                     _ => continue,
                                 }
                             }
                         },
                         _ => continue,
+                    }
+                },
+                None => continue,
+            }
+        }
+        // Ok(())
+    }
+    pub async fn send_listen(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
+        let this_id = message.id().expect("Message must have an ID");
+        self.send(message).await?;
+        loop {
+            match self.recv().await {
+                Some(msg) => {
+                    match msg.id() {
+                        Some(id) => {
+                            if id == this_id {
+                                return Ok(msg)
+                            }
+                        },
+                        None => continue,
                     }
                 },
                 None => continue,
