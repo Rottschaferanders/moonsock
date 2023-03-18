@@ -191,7 +191,7 @@ pub enum MoonResultData {
     Ok,
     ServerTemperatureStore {
         #[serde(flatten)]
-        items: TemperatureStoreItems,
+        items: Vec<TemperatureStoreItems>,
     },
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
