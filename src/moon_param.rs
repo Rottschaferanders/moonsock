@@ -26,6 +26,7 @@ pub enum MoonParam {
         system_memory: SystemMemory,
         websocket_connections: u64,
     },
+    NotifyGcodeResponse( String ),
     GcodeScript {
         script: String,
     },

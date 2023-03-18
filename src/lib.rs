@@ -50,6 +50,11 @@ pub enum ResultDef<T, E> {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum MoonMSG {
+    MoonError {
+        jsonrpc: JsonRpcVersion,
+        error: MoonError,
+        id: u32,
+    },
     MethodParamID {
         jsonrpc: JsonRpcVersion,
         method: MoonMethod,
@@ -156,6 +161,12 @@ pub enum MoonMSG {
     // }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MoonError {
+    pub code: u32,
+    pub message: String,
+}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GcodeStore {
@@ -191,6 +202,9 @@ impl MoonMSG {
     }
     pub fn method(&self) ->  &MoonMethod {
         match self {
+            MoonMSG::MoonError { error, .. } => {
+                panic!("Error: {:?}", error);
+            },
             MoonMSG::MethodParamID { method, .. } => method,
             MoonMSG::MethodParamVecID { method, .. } => method,
             MoonMSG::MethodParam { method, .. } => method,
@@ -216,6 +230,9 @@ impl MoonMSG {
     }
     pub fn params(&self) -> Vec<MoonParam> {
         match self {
+            MoonMSG::MoonError {..} => {
+                panic!("MoonError has no params");
+            },
             MoonMSG::MethodParamID { params, .. } => vec! {params.clone()},
             MoonMSG::MethodParamVecID { params, .. } => params.clone(),
             MoonMSG::MethodParam { params, .. } => vec! { params.clone() },
