@@ -67,6 +67,7 @@ impl MoonConnection {
                             },
                             Err(_) => {
                                 println!("----------------------------MESSAGE NOT PARSED----------------------------");
+                                println!("Message Length: {}", message.len());
                                 println!("{}", message);
                                 println!("--------------------------------------------------------------------------");
                             },

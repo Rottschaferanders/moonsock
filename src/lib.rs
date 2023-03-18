@@ -124,6 +124,7 @@ pub enum MoonMSG {
         params: serde_json::Value,
         id: u32,
     },
+    Empty,
 
     // I think this is useless, but I don't want to scan through the moonraker API docs again.
     // NotRecognized { value: serde_json::Value },
@@ -240,6 +241,9 @@ impl MoonMSG {
             MoonMSG::CouldNotParseMethodParamsID { method, .. } => {
                 panic!("CouldNotParseMethodParamsID: {:?}", method);
             },
+            MoonMSG::Empty => {
+                panic!("MoonMSG::Empty has no method");
+            },
         }
     }
     pub fn params(&self) -> Vec<MoonParam> {
@@ -270,6 +274,9 @@ impl MoonMSG {
             },
             MoonMSG::CouldNotParseMethodParamsID { params, .. } => {
                 panic!("CouldNotParseMethodParamsID: {:?}", params);
+            },
+            MoonMSG::Empty => {
+                panic!("MoonMSG::Empty has no method");
             },
         }
     }

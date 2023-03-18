@@ -1,16 +1,4 @@
-// #[test]
-// fn ok_message() {
-//     //use crate::json_rpc::MoonMSG;
-//     use moonsock::MoonMSG;
-//     let raw = "ok";
-//     let serialize_raw: MoonMSG = serde_json::from_str(raw).expect("Serialize Failed");
-//     let deserialize_raw = serde_json::to_string(&serialize_raw).unwrap();
-//     assert_eq!(raw, deserialize_raw);
-//     let object = MoonMSG::AvailablePrinterObjects { objects: Vec::from(["gcode".to_string(), "toolhead".to_string(), "bed_mesh".to_string(), "configfile".to_string()]) };
-//     let deserialize_object = serde_json::to_string(&object).unwrap();
-//     let serialize_object: MoonMSG = serde_json::from_str(&deserialize_object).unwrap();
-//     assert_eq!(object, serialize_object);
-// }
+use moonsock::MoonMSG;
 
 #[test]
 fn identify_connection() {
@@ -40,6 +28,24 @@ fn query_endstops() {
     let deserialized = serde_json::to_string(&serialized).unwrap();
     // println!("{:?}", &deserialized);
     assert_eq!(message, deserialized);
+}
+
+#[test]
+fn empty() {
+    let msg_struct = MoonMSG::Empty;
+    let msg_struct_string = serde_json::to_string(&msg_struct).unwrap();
+    println!("{}", msg_struct_string);
+    let message = "";
+    let serialized: MoonMSG = serde_json::from_str(&message).unwrap();
+    assert_eq!(serialized, MoonMSG::Empty);
+    // match serialized {
+    //     MoonMSG::Empty => {
+    //         assert_eq!(error.code, -32700);
+    //         assert_eq!(id, 0);
+    //         assert_eq!(error.message, "Parse error");
+    //     }
+    //     _ => panic!("Wrong message type"),
+    // }
 }
 
 // #[test]
