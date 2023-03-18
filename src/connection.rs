@@ -57,6 +57,9 @@ impl MoonConnection {
             while let Some(message) = moon_socket_stream.next().await {
                 match message {
                     Ok(msg) => {
+                        if msg.len() == 0 {
+                            continue;
+                        }
                         let message = msg.into_text().unwrap();
                         // println!("Received: {}", message);
                         let parsed = serde_json::from_str(&message);
