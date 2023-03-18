@@ -6,9 +6,9 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use core::pin::Pin;
 use futures_util::{sink::*, StreamExt};
 use url::Url;
-use crate::*;
+// use crate::*;
 
-// use crate::MoonMSG;
+use crate::{MoonMSG, MoonResultData};
 
 /// A WebSocket connection to a Moonraker server.
 pub struct MoonConnection {
@@ -142,5 +142,32 @@ impl MoonConnection {
     /// Returns an `Option<MoonMSG>` containing the received message, or `None` if the receiver channel has been closed.
     pub async fn recv(&mut self) -> Option<MoonMSG> {
         self.read_stream.recv().await
+    }
+    pub async fn send_checked(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+        let this_id = 3243;
+        let msg = message.set_id(this_id);
+        self.send(msg).await?;
+        // let mut ok_received = false;
+        loop {
+            match self.recv().await {
+                Some(msg) => {
+                    match msg {
+                        MoonMSG::MoonResult { id, result, .. } => {
+                            if id == this_id {
+                                match result {
+                                    MoonResultData::Ok => {
+                                        return Ok(())
+                                    }
+                                    _ => continue,
+                                }
+                            }
+                        },
+                        _ => continue,
+                    }
+                },
+                None => continue,
+            }
+        }
+        // Ok(())
     }
 }

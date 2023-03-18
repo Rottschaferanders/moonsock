@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum MoonMethod {
+    Empty,
     #[serde(rename="server.connection.identify")]
     ServerConnectionIdentify,
     #[serde(rename="server.info")]
@@ -9,7 +10,7 @@ pub enum MoonMethod {
     #[serde(rename="server.config")]
     ServerConfig,
     #[serde(rename = "server.temperature_store")]
-    TemperatureStore,
+    ServerTemperatureStore,
     #[serde(rename = "server.gcode_store")]
     GcodeStore,
     #[serde(rename = "server.restart")]
@@ -52,7 +53,7 @@ pub enum MoonMethod {
     MachineReboot,
     #[serde(rename="machine.services.restart")]
     // Restarts a system service via sudo systemctl restart {name}. Currently the 
-    // moonraker, klipper, MoonCord, KlipperScreen and webcamd services are supported.
+    // moonraker, klipper, MoonCord, KlipperScreen and webcamd services are supported.h
     MachineServicesRestart, 
     #[serde(rename="machine.services.stop")]
     // Stops a system service via sudo systemctl stop <name>. Currently only webcamd 
