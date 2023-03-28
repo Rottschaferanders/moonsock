@@ -9,34 +9,6 @@ pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::MoonParam;
 
-// From this very helpful article: https://blog.dzejkop.space/serde-by-example-1/
-
-/// ---------------------- Response Deserializing ------------------------
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// #[serde(bound = "T: Serialize + DeserializeOwned")]
-// pub struct Response<T> {
-//     pub jsonrpc: JsonRpcVersion,
-//     #[serde(flatten)]
-//     #[serde(with = "ResultDef")]
-//     pub result: Result<T, ResponseError>,
-//     pub id: u32,
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// pub struct ResponseError {
-//     pub code: i32,
-//     pub message: String,
-//     pub data: Option<serde_json::Value>,
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// #[serde(remote = "Result")]
-// pub enum ResultDef<T, E> {
-//     #[serde(rename = "result")]
-//     Ok(T),
-//     #[serde(rename = "error")]
-//     Err(E),
-// }
 /// ---------------------- Request Serializing ------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -170,20 +142,6 @@ pub enum MoonMSG {
     //     api_version_string: String,
     // }
 
-// extruder: {
-//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1],
-//     "targets": [0, 0, 0, 0, 0],
-//     "powers": [0, 0, 0, 0, 0]
-// },
-// "temperature_fan my_fan": {
-//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1],
-//     "targets": [0, 0, 0, 0, 0],
-//     "speeds": [0, 0, 0, 0, 0],
-// },
-// "temperature_sensor my_sensor": {
-//     "temperatures": [21.05, 21.12, 21.1, 21.1, 21.1]
-// }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum MoonOk {
@@ -199,58 +157,20 @@ pub enum MoonResultData {
     TemperatureStore(TemperatureStore),
 }
 
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// #[serde(untagged)]
-// pub enum MoonResultData {
-//     // #[serde(rename = "ok")]
-//     #[serde(alias = "ok")]
-//     Ok(MoonOk),
-//     // #[serde(flatten)]
-//     ServerTemperatureStore([TemperatureStoreItems; 2]),
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub enum MoonResultData {
-//     #[serde(alias = "ok")]
-//     Ok(MoonOk),
-//     #[serde(rename = "heater_bed")]
-//     HeaterBed(TemperatureStoreItems),
-//     #[serde(rename = "extruder")]
-//     Extruder(TemperatureStoreItems),
-//     #[serde(rename = "temperature_fan")]
-//     TemperatureFan(TemperatureStoreItems),
-//     #[serde(rename = "temperature_sensor")]
-//     TemperatureSensor(TemperatureStoreItems),
-// }
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum TempStoreData {
-    // #[serde(rename = "heater_bed")]
     TempTgtsPowers {
         temperatures: Vec<f32>,
         targets: Vec<f32>,
         powers: Vec<f32>,
     },
-    // #[serde(rename = "extruder")]
-    // Extruder {
-    //     temperatures: Vec<f32>,
-    //     targets: Vec<f32>,
-    //     powers: Vec<f32>,
-    // },
-    // #[serde(rename = "temperature_fan")]
-    // TemperatureFan {
-    //     temperatures: Vec<f32>,
-    //     targets: Vec<f32>,
-    //     speeds: Vec<f32>,
-    // },
-    // #[serde(rename = "temperature_sensor")]
     Temp {
         temperatures: Vec<f32>,
     },
 }
 
-// The names of the items in the temperature store
+/// The names of the items in the temperature store
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum HeaterNames {
     #[serde(rename = "heater_bed")]
@@ -300,53 +220,7 @@ impl TemperatureStore {
         self.items.insert(key, value);
     }
 }
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// #[serde(untagged)]
-// pub enum TemperatureStoreItems {
-//     HeaterBed {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         powers: Vec<f32>,
-//     },
-//     Extruder {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         powers: Vec<f32>,
-//     },
-//     TemperatureFan {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         speeds: Vec<f32>,
-//     },
-//     TemperatureSensor {
-//         temperatures: Vec<f32>,
-//     }
-// }
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub enum TemperatureStoreItems {
-//     #[serde(rename = "heater_bed")]
-//     HeaterBed {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         powers: Vec<f32>,
-//     },
-//     #[serde(rename = "extruder")]
-//     Extruder {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         powers: Vec<f32>,
-//     },
-//     #[serde(rename = "temperature_fan")]
-//     TemperatureFan {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         speeds: Vec<f32>,
-//     },
-//     #[serde(rename = "temperature_sensor")]
-//     TemperatureSensor {
-//         temperatures: Vec<f32>,
-//     }
-// }
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MoonErrorContent {
@@ -370,13 +244,12 @@ pub enum GcodeType {
 }
 
 impl MoonMSG {
-    // pub fn new_with_params(method: MoonMethod, params: Option(MoonParam), id: u32) -> MoonMSG:: {
-    //     match params {
-    //         MoonParam::None => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2_0, method, id },
-    //         _ => MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method, params, id },
-    //     }
-    // }
-    // #[allow(dead_code)]
+    /// Creates a new MoonMSG which can be sent to Moonraker via the websocket
+    /// The method is the name of the method to be called and is required for all messages
+    /// The params are the parameters to be passed to the method and are optional for some types of messages
+    /// refer to the moonraker api docs for more information for now.
+    /// The id is the id of the message and is optional for some types of messages. It allows you to match up responses to requests.
+    /// Assuming you use unique ids for every message you send, a response with a match id is the response to the request with that id.
     pub fn new(method: MoonMethod, params: Option<MoonParam>, id: Option<u32>) -> MoonMSG {
         match (params, id) {
             (None, None) => MoonMSG::Method { jsonrpc: JsonRpcVersion::V2_0, method },
@@ -544,26 +417,3 @@ pub enum PrinterState {
     Paused,
 }
 
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// pub struct Request {
-//     jsonrpc: JsonRpcVersion,
-//     method: MoonMethod,
-//     params: MoonParam,
-//     id: u32,
-// }
-
-// impl Request {
-//     #[allow(dead_code)]
-//     pub fn new(method: MoonMethod, params: MoonParam, id: u32) -> Request {
-//         // match params {
-//         //     MoonParam::None => Request { jsonrpc: JsonRpcVersion::V2_0, method: method },
-//         //     _ => Request::MethodParam { jsonrpc: JsonRpcVersion::V2_0, method: method, params: params },
-//         // }
-//         Request { 
-//             jsonrpc: JsonRpcVersion::V2_0, 
-//             method: method, 
-//             params: params,
-//             id: id,
-//         }
-//     }
-// }

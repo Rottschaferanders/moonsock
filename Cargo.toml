@@ -2,6 +2,8 @@
 name = "moonsock"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket from anywhere where tokio can be ran and your printer is accessible from the internet."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

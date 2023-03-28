@@ -1,4 +1,3 @@
-// use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -81,6 +80,7 @@ pub struct MoonrakerStats {
     pub memory: u64,
     pub mem_units: String,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Network {
     pub lo: NetworkData,
@@ -88,7 +88,6 @@ pub struct Network {
     pub wlan0: NetworkData,
 }
 
-// {"rx_bytes": , "tx_bytes": , "rx_packets": , "tx_packets": , "rx_errs": 0, "tx_errs": 0, "rx_drop": 0, "tx_drop": 0, "bandwidth": 8630.21}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NetworkData {
     pub rx_bytes: u64,
@@ -128,6 +127,7 @@ pub enum SystemdSevice {
     #[serde(rename = "{nginx}")]
     Nginx,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Event {
     pub elapsed_time: f32,

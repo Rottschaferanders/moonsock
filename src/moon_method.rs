@@ -27,8 +27,9 @@ pub enum MoonMethod {
     Restart,
     #[serde(rename="printer.firmware_restart")]
     FirmwareRestart,
+    /// Lists available printer objects
     #[serde(rename="printer.printer.objects.list")]
-    PrinterObjectsList, // Lists available printer objects
+    PrinterObjectsList,
     #[serde(rename="printer.objects.query")]
     PrinterObjectsQuery,
     #[serde(rename="printer.objects.subscribe")]
@@ -52,24 +53,26 @@ pub enum MoonMethod {
     #[serde(rename="machine.reboot")]
     MachineReboot,
     #[serde(rename="machine.services.restart")]
-    // Restarts a system service via sudo systemctl restart {name}. Currently the 
-    // moonraker, klipper, MoonCord, KlipperScreen and webcamd services are supported.h
+    /// Restarts a system service via sudo systemctl restart {name}. Currently the 
+    /// moonraker, klipper, MoonCord, KlipperScreen and webcamd services are supported.h
     MachineServicesRestart, 
     #[serde(rename="machine.services.stop")]
-    // Stops a system service via sudo systemctl stop <name>. Currently only webcamd 
-    // and klipper are supported.
+    /// Stops a system service via sudo systemctl stop <name>. Currently only webcamd 
+    /// and klipper are supported.
     MachineServicesStop,
     #[serde(rename="machine.services.start")]
-    // Starts a system service via sudo systemctl start <name>. Currently only 
-    // webcamd and klipper are supported.
+    /// Starts a system service via sudo systemctl start <name>. Currently only 
+    /// webcamd and klipper are supported.
     MachineServicesStart,
+    /// Returns system usage information about the moonraker process.
     #[serde(rename="machine.proc_stat")]
-    MachineProcStat, // Returns system usage information about the moonraker process.
+    MachineProcStat,
+    /// Checks if Moonraker has permission to run commands as root.
     #[serde(rename="machine.sudo")]
-    MachineSudo, // Checks if Moonraker has permission to run commands as root.
+    MachineSudo,
     #[serde(rename="machine.sudo.password")]
-    // Sets/updates the sudo password currently used by Moonraker. When the password 
-    // is set using this endpoint the change is not persistent across restarts.
+    /// Sets/updates the sudo password currently used by Moonraker. When the password 
+    /// is set using this endpoint the change is not persistent across restarts.
     MachineSudoPassword, 
     #[serde(rename="server.files.list")]
     ServerFilesList,
@@ -77,8 +80,9 @@ pub enum MoonMethod {
     ServerFilesMetadata,
     #[serde(rename="server.files.get_directory")]
     ServerFilesGetDirectory,
+    /// Creates a directory at the specified path.
     #[serde(rename="server.files.post_directory")]
-    ServerFilesPostDirectory, // Creates a directory at the specified path.
+    ServerFilesPostDirectory,
     #[serde(rename="server.files.delete_directory")]
     ServerFilesDeleteDirectory,
     #[serde(rename="server.files.move")]
