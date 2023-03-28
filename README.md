@@ -33,3 +33,6 @@ match connection.send_listen(message.clone()).await {
     Err(_) => continue,
 }
 ```
+
+# Completeness
+Not all message types are supported by the parser currently, but most of the important ones are. If you want support for more messages, either wait or create a pull request on the github.
