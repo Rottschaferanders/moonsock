@@ -4,9 +4,6 @@ Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket 
 
 # Usage
 
-The general steps you'll have to follow are:
-
-
 ## Connect to a printer
 Open up the websocket creating a new MoonConnection inside a tokio runtime.  
 
