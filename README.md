@@ -7,12 +7,12 @@ Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket 
 When opening up a MoonConnection, make sure you set both the read and write buffers large enough for your use case. In the example below, both are set to 1000.
 
 ## Connect to a printer
-Open up the websocket creating a new MoonConnection inside a tokio runtime.
+Open up the websocket by creating a new MoonConnection inside a tokio runtime.
 
 ```rust
 // I prefer starting my own tokio runtimes for this sort of use-case. 
- use tokio::runtime::Builder;
- use moonsock::{MoonConnection, MoonMSG, MoonMethod};
+use tokio::runtime::Builder;
+use moonsock::{MoonConnection, MoonMSG, MoonMethod};
 println!("Starting Main Runtime");
 let moon_rt = Builder::new_multi_thread()
     .worker_threads(1)
@@ -26,7 +26,7 @@ let mut connection = moon_rt.block_on(MoonConnection::new(URL.to_string(), 1000,
 ```
 
 ## Basic Send Message
-Note: The below examples need to be ran in a tokio runtime. 
+The below examples need to be ran in a tokio runtime. 
 ```rust
 let id = 4242;
 connection.send(MoonMSG::gcode(
@@ -43,8 +43,7 @@ moon_rt.block_on(connection.send(MoonMSG::gcode(
 ```
 
 ## Send Message and Wait for It's Response
-The `send_listen` method is async so it doesn't block the thread while waiting.
-This will send a message and return the response for that specific message. To be clear, it does not return the next received response, it returns the first response that has an id that matches the id of the sent message. An id should be set on the sent message or else the future might never yield. 
+The `send_listen` method will send a message and return the response for that specific message. To be clear, it does not return the next received response, it returns the first response that has an id that matches the id of the sent message. The `send_listen` method is async so it doesn't block the thread while waiting. An id should be set on the sent message or else the future might never return. 
 
 ```rust
 let temp_id = 42342;
@@ -66,6 +65,6 @@ match connection.recv().await {
 ```
 
 # Completeness of the crate
-Not all message types are supported by the parser currently, but most of the important ones are. If you want support for more messages, either wait or create a pull request on the github.
+Not all message types are supported by the parser currently, but most of the important ones are. If you want support for more messages feel free to upen up an issue or fork this and add support yourself.
 
 
