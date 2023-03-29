@@ -1,6 +1,6 @@
 # moonsock
 
-Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket using Rust from anywhere where tokio can be ran and your printer is accessible from the internet.
+Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket using Rust from anywhere where tokio can be ran and you can access your 3D printer though the internet (generally within your local network).
 
 # Usage
 
