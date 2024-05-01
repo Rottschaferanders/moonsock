@@ -8,7 +8,7 @@ use futures_util::{sink::*, StreamExt};
 use url::Url;
 // use crate::*;
 
-use crate::{MoonMSG, MoonResultData};
+use crate::{MoonMSG, MoonResultData, MoonMethod, PrinterState, PrinterInfoResponse};
 
 /// A WebSocket connection to a Moonraker server.
 pub struct MoonConnection {
@@ -263,5 +263,32 @@ impl MoonConnection {
             }
         }
         // Ok(())
+    }
+    pub async fn get_printer_info(&mut self, message_id: Option<u32>) -> Result<PrinterInfoResponse, Box<dyn std::error::Error>> {
+        let message = MoonMSG::new(MoonMethod::PrinterInfo, None, message_id);
+        let result = self.send_listen(message).await?;
+        println!("Received response: {:?}", result);
+        match result {
+            MoonMSG::MoonResult { result, id, .. } => {
+                match message_id {
+                    Some(msg_id) => {
+                        if msg_id != id {
+                            println!("IDs of request and response do no match in method `get_printer_info`");
+                        }
+                    },
+                    None => {},
+                }
+
+                match result {
+                    MoonResultData::Ok(_) => Err("Recived an ok() response from the server, but was expecting ".into()),
+                    MoonResultData::PrinterInfoResponse(printer_info) => {
+                        return Ok(printer_info);
+                    },
+                    _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
+                }
+            },
+            _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
+        }
+        // Ok(PrinterState::Ready)
     }
 }
