@@ -14,6 +14,8 @@ pub enum PrinterState {
     Complete,
     #[serde(rename = "cancelled")]
     Cancelled,
+    #[serde(rename = "shutdown")]
+    Shutdown,
     #[serde(rename = "error")]
     Error,
 }

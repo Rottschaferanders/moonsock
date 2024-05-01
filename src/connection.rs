@@ -278,8 +278,6 @@ impl MoonConnection {
                     Some(msg_id) => {
                         if msg_id != id {
                             println!("IDs of request and response do no match in method `get_printer_info`");
-                        } else {
-                            println!("IDs of requests match!");
                         }
                     },
                     None => {},

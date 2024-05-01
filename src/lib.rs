@@ -10,7 +10,10 @@ pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::MoonParam;
 // use messages::{PrinterState, PrinterInfoResponse};
-use messages::PrinterInfoResponse;
+use messages::{
+    PrinterInfoResponse, TemperatureStore, 
+    // GcodeType,
+};
 
 /// ---------------------- Request Serializing ------------------------
 
@@ -161,98 +164,69 @@ pub enum MoonResultData {
     PrinterInfoResponse(PrinterInfoResponse),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(untagged)]
-pub enum TempStoreData {
-    TempTgtsPowers {
-        temperatures: Vec<f32>,
-        targets: Vec<f32>,
-        powers: Vec<f32>,
-    },
-    Temp {
-        temperatures: Vec<f32>,
-    },
-}
-
-
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub enum PrinterState {
-//     Ready,
-//     Paused,
-//     Standby,
-//     Printing,
-//     Complete,
-//     Cancelled,
-//     Error,
+// #[serde(untagged)]
+// pub enum TempStoreData {
+//     TempTgtsPowers {
+//         temperatures: Vec<f32>,
+//         targets: Vec<f32>,
+//         powers: Vec<f32>,
+//     },
+//     Temp {
+//         temperatures: Vec<f32>,
+//     },
 // }
 
+// /// The names of the items in the temperature store
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+// pub enum HeaterNames {
+//     #[serde(rename = "heater_bed")]
+//     HeaterBed,
+//     #[serde(rename = "extruder")]
+//     Extruder,
+//     #[serde(rename = "extruder1")]
+//     Extruder1,
+//     #[serde(rename = "extruder2")]
+//     Extruder2,
+//     #[serde(rename = "extruder3")]
+//     Extruder3,
+//     #[serde(rename = "extruder4")]
+//     Extruder4,
+//     #[serde(rename = "extruder5")]
+//     Extruder5,
+//     #[serde(rename = "extruder6")]
+//     Extruder6,
+//     #[serde(rename = "extruder7")]
+//     Extruder7,
+//     #[serde(rename = "extruder8")]
+//     Extruder8,
+//     #[serde(rename = "extruder9")]
+//     Extruder9,
+//     #[serde(rename = "extruder10")]
+//     Extruder10,
+//     #[serde(rename = "temperature_fan")]
+//     TemperatureFan,
+//     #[serde(rename = "temperature_sensor")]
+//     TemperatureSensor,
+//     NameStr(String),
+// }
+// use std::collections::HashMap;
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct PrinterInfoResponse {
-//     // pub state: String,
-//     pub state: PrinterState,
-//     pub state_message: String,
-//     pub hostname: String,
-//     pub klipper_path: String,
-//     pub python_path: String,
-//     pub process_id: i32,
-//     pub user_id: i32,
-//     pub group_id: i32,
-//     pub log_file: String,
-//     pub config_file: String,
-//     pub software_version: String,
-//     pub cpu_info: String,
+// pub struct TemperatureStore {
+//     #[serde(flatten)]
+//     pub items: HashMap<HeaterNames, TempStoreData>,
 // }
 
-/// The names of the items in the temperature store
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum HeaterNames {
-    #[serde(rename = "heater_bed")]
-    HeaterBed,
-    #[serde(rename = "extruder")]
-    Extruder,
-    #[serde(rename = "extruder1")]
-    Extruder1,
-    #[serde(rename = "extruder2")]
-    Extruder2,
-    #[serde(rename = "extruder3")]
-    Extruder3,
-    #[serde(rename = "extruder4")]
-    Extruder4,
-    #[serde(rename = "extruder5")]
-    Extruder5,
-    #[serde(rename = "extruder6")]
-    Extruder6,
-    #[serde(rename = "extruder7")]
-    Extruder7,
-    #[serde(rename = "extruder8")]
-    Extruder8,
-    #[serde(rename = "extruder9")]
-    Extruder9,
-    #[serde(rename = "extruder10")]
-    Extruder10,
-    #[serde(rename = "temperature_fan")]
-    TemperatureFan,
-    #[serde(rename = "temperature_sensor")]
-    TemperatureSensor,
-    NameStr(String),
-}
-use std::collections::HashMap;
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct TemperatureStore {
-    #[serde(flatten)]
-    pub items: HashMap<HeaterNames, TempStoreData>,
-}
-
-impl TemperatureStore {
-    pub fn new() -> Self {
-        Self {
-            items: HashMap::new(),
-        }
-    }
-    pub fn add_to_hashmap(&mut self, key: HeaterNames, value: TempStoreData)  {
-        self.items.insert(key, value);
-    }
-}
+// impl TemperatureStore {
+//     pub fn new() -> Self {
+//         Self {
+//             items: HashMap::new(),
+//         }
+//     }
+//     pub fn add_to_hashmap(&mut self, key: HeaterNames, value: TempStoreData)  {
+//         self.items.insert(key, value);
+//     }
+// }
 
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -262,19 +236,19 @@ pub struct MoonErrorContent {
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct GcodeStore {
-    message: String,
-    time: f32,
-    #[serde(rename = "type")]
-    typee: GcodeType,
-}
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(untagged)]
-pub enum GcodeType {
-    Command,
-    Response,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct GcodeStore {
+//     message: String,
+//     time: f32,
+//     #[serde(rename = "type")]
+//     typee: GcodeType,
+// }
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// #[serde(untagged)]
+// pub enum GcodeType {
+//     Command,
+//     Response,
+// }
 
 impl MoonMSG {
     /// Creates a new MoonMSG which can be sent to Moonraker via the websocket
