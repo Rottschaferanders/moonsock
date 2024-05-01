@@ -18,21 +18,19 @@ pub enum PrinterState {
     Error,
 }
 
-// impl Deserialize for PrinterState {
-//     fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         let state_str = deserializer.deserialize_str()?;
-//         match state_str {
-//             "ready" => Ok(PrinterState::Ready),
-//             "paused" => Ok(PrinterState::Paused),
-//             "standby" => Ok(PrinterState::Standby),
-//             "printing" => Ok(PrinterState::Printing),
-//             "complete" => Ok(PrinterState::Complete),
-//             "cancelled" => Ok(PrinterState::Cancelled),
-//             "error" => Ok(PrinterState::Error),
-//             _ => Err(serde::de::Error::custom("Invalid printer state")),
-//         }
-//     }
-// }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PrinterInfoResponse {
+    // pub state: String,
+    pub state: PrinterState,
+    pub state_message: String,
+    pub hostname: String,
+    pub klipper_path: String,
+    pub python_path: String,
+    pub process_id: i32,
+    pub user_id: i32,
+    pub group_id: i32,
+    pub log_file: String,
+    pub config_file: String,
+    pub software_version: String,
+    pub cpu_info: String,
+}

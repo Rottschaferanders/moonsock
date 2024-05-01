@@ -9,7 +9,8 @@ pub mod moon_param;
 pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::MoonParam;
-use messages::PrinterState;
+// use messages::{PrinterState, PrinterInfoResponse};
+use messages::PrinterInfoResponse;
 
 /// ---------------------- Request Serializing ------------------------
 
@@ -185,22 +186,22 @@ pub enum TempStoreData {
 //     Error,
 // }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct PrinterInfoResponse {
-    // pub state: String,
-    pub state: PrinterState,
-    pub state_message: String,
-    pub hostname: String,
-    pub klipper_path: String,
-    pub python_path: String,
-    pub process_id: i32,
-    pub user_id: i32,
-    pub group_id: i32,
-    pub log_file: String,
-    pub config_file: String,
-    pub software_version: String,
-    pub cpu_info: String,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct PrinterInfoResponse {
+//     // pub state: String,
+//     pub state: PrinterState,
+//     pub state_message: String,
+//     pub hostname: String,
+//     pub klipper_path: String,
+//     pub python_path: String,
+//     pub process_id: i32,
+//     pub user_id: i32,
+//     pub group_id: i32,
+//     pub log_file: String,
+//     pub config_file: String,
+//     pub software_version: String,
+//     pub cpu_info: String,
+// }
 
 /// The names of the items in the temperature store
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
