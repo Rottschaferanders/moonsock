@@ -1,4 +1,4 @@
-use moonsock::{MoonMSG, MoonResultData, MoonOk};
+use moonsock::{MoonMSG, moon_response::{MoonResultData, MoonOk}};
 #[test]
 fn result_ok() {
     let message_struct = MoonMSG::MoonResult {

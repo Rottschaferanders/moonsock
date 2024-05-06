@@ -1,4 +1,4 @@
-use serde::Serialize;
+// use serde::Serialize;
 use tokio::sync::mpsc::{
     error::SendError,
     Permit,
@@ -10,7 +10,7 @@ use url::Url;
 // use crate::*;
 
 use crate::{
-    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, MoonResultData, PrinterInfoResponse
+    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, moon_response::MoonResultData, PrinterInfoResponse
 };
 
 /// A WebSocket connection to a Moonraker server.
@@ -37,7 +37,7 @@ impl MoonConnection {
             Ok(stuff) => stuff,
             Err(_) => panic!("Error connecting to websocket"),
         };
-        // println!("WebSocket handshake has been successfully completed");
+
         let (mut moon_socket_sink, mut moon_socket_stream) = ws_stream.split();
 
         // Spawns Moonraker Websocket writer thread
@@ -54,9 +54,9 @@ impl MoonConnection {
                 }
             }
         });
-        // println!("Split websocket Stream");
+
         let (ws_reader_sender, ws_reader_receiver) = tokio::sync::mpsc::channel(reader_buffer_size);
-        // println!("Created Reader Runtime");
+
         // Spawns Moonraker Websocket reader thread
         tokio::spawn(async move {
             while let Some(message) = moon_socket_stream.next().await {
@@ -187,7 +187,7 @@ impl MoonConnection {
     /// doesn't block the thread if the queue is full, but also ensures that the order of messages is exactly as your program describes. 
     /// Use this function if you are sending a lot of messages in a short amount of time and the order of those messages matters.
     /// 
-    /// Essentially, you are putting a dynmic buffer on top of the fixed-sized primary message buffer to ensure that messages are sent in the order you want.
+    /// Essentially, you are putting a dynamic buffer on top of the fixed-sized primary message buffer to ensure that messages are sent in the order you want.
     /// 
     /// For example, say you wanted to ensure the printer recieved a `G28` (Home Printer) command before a `G1 Z10` (move printer bed up) command. 
     /// Although, in this case, you'll want to sleep for a bit after the `G28` command to ensure the printer has time to home before moving the bed up.
@@ -245,10 +245,10 @@ impl MoonConnection {
                 None => continue,
             }
         }
-        // Ok(())
     }
     pub async fn send_listen(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
-        let this_id = message.id().expect("Message must have an ID");
+        // let this_id = message.id().expect("Message must have an ID");
+        let this_id = message.id().unwrap_or(rand::random());
         self.send(message).await?;
         loop {
             match self.recv().await {
@@ -265,13 +265,11 @@ impl MoonConnection {
                 None => continue,
             }
         }
-        // Ok(())
     }
     pub async fn get_printer_info(&mut self, message_id: Option<u32>) -> Result<PrinterInfoResponse, Box<dyn std::error::Error>> {
         let message = MoonMSG::new(MoonMethod::PrinterInfo, None, message_id);
-        let result = self.send_listen(message).await?;
-        // println!("Received response: {:?}", result);
-        match result {
+        // let result = self.send_listen(message).await?;
+        match self.send_listen(message).await? {
             MoonMSG::MoonResult { result, id, .. } => {
                 match message_id {
                     Some(msg_id) => {
@@ -298,12 +296,10 @@ impl MoonConnection {
             objects: PrinterObject::Toolhead(vec!["homed_axes".to_string()]),
         };
         let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
-        println!("Sending: {}", serde_json::to_string_pretty(&msg).unwrap());
-        let response = self.send_listen(msg).await?;
-    
-        println!("Check printer homed_response: {:?}", response);
-    
-        match response {
+        // println!("Sending: {}", serde_json::to_string_pretty(&msg).unwrap());
+        // let response = self.send_listen(msg).await?;
+
+        match self.send_listen(msg).await? {
             MoonMSG::MoonResult { result, .. } => {
                 match result {
                     MoonResultData::QueryPrinterObjectsResponse(res) => {
@@ -322,6 +318,5 @@ impl MoonConnection {
             },
             _ => Err("Error: Printer did not return expected response".into()),
         }
-        // Ok(is_homed)
     }
 }

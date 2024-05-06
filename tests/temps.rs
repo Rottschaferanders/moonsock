@@ -1,4 +1,4 @@
-use moonsock::{MoonMSG, MoonResultData, messages::{TemperatureStore, TempStoreData, HeaterNames}};
+use moonsock::{MoonMSG, moon_response::MoonResultData, moon_response::{TemperatureStore, TempStoreData, HeaterNames}};
 use std::{
     string::String,
     fs::File,
@@ -21,7 +21,7 @@ fn temperature_store_parse() {
     let mut temp_store = TemperatureStore::new();
     temp_store.add_to_hashmap(HeaterNames::HeaterBed, bed);
     temp_store.add_to_hashmap(HeaterNames::Extruder, extruder);
-    let msg_two = MoonMSG::new_result(MoonResultData::TemperatureStore(temp_store), 1); 
+    // let msg_two = MoonMSG::new_result(MoonResultData::TemperatureStore(temp_store), 1); 
 
     // let msg_string = serde_json::to_string(&msg_two).unwrap();
     // println!("{}", msg_string);
@@ -46,7 +46,7 @@ fn temperature_store_parse() {
     let msg: MoonMSG = serde_json::from_str(message).unwrap();
     // println!("Parsed: {:#?}", msg);
     match msg {
-        MoonMSG::MoonResult { id, result, .. } => {
+        MoonMSG::MoonResult { result, .. } => {
             // println!("Received Result: {}", id);
             // println!("Result: {:?}", result);
             match result {

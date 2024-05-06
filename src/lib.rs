@@ -1,19 +1,21 @@
 use serde::{Serialize, Deserialize};
 
-pub mod messages;
+pub mod moon_response;
+// mod moon_response;
+// pub use moon_response::*;
+
 pub mod connection;
 pub mod moon_method;
 pub mod moon_param;
-mod moon_response;
-pub use moon_response::*;
 
 // Exports:
 pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::MoonParam;
 // use messages::{PrinterState, PrinterInfoResponse};
-use messages::{
-    PrinterInfoResponse, TemperatureStore, 
+use moon_response::{
+    PrinterInfoResponse, 
+    // TemperatureStore, 
     // GcodeType,
 };
 
@@ -30,7 +32,7 @@ pub enum JsonRpcVersion {
 pub enum MoonMSG {
     MoonResult {
         jsonrpc: JsonRpcVersion,
-        result: MoonResultData,
+        result: moon_response::MoonResultData,
         id: u32,
     },
     MoonError {
@@ -274,7 +276,7 @@ impl MoonMSG {
             id,
         }
     }
-    pub fn new_result(result: MoonResultData, id: u32) -> MoonMSG {
+    pub fn new_result(result: moon_response::MoonResultData, id: u32) -> MoonMSG {
         MoonMSG::MoonResult {
             jsonrpc: JsonRpcVersion::V2_0,
             result,

@@ -1,4 +1,7 @@
-use moonsock::{MoonMSG, MoonMethod, MoonParam};
+use moonsock::{
+    MoonMSG, MoonMethod, MoonParam,
+    moon_param::{MoonrakerStats, Network, NetworkData, SystemCpuUsage, SystemMemory}
+};
 
 #[test]
 fn notify_gcode_response() {
@@ -183,7 +186,7 @@ fn notify_proc_stat_update_two() {
     let serialized: MoonMSG = serde_json::from_str(&message).unwrap();
     assert_eq!(serialized.method(), MoonMethod::NotifyProcStatUpdate);
 }
-use moonsock::{moon_param::{MoonrakerStats, Network, NetworkData, SystemCpuUsage, SystemMemory}};
+
 fn example_notify_proc_stat_update() -> MoonMSG {
     MoonMSG::MethodParam {
         jsonrpc: moonsock::JsonRpcVersion::V2_0,

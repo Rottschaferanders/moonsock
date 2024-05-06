@@ -58,24 +58,10 @@ impl MoonParam {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PrinterObject {
-    // GcodeMove {
-    //     absolute_coordinates: Option<bool>,
-    //     absolute_extrude: Option<bool>,
-    //     extrude_factor: Option<f32>,
-    //     gcode_position: Option<[f32; 4]>,
-    //     homing_origin: Option<[f32; 4]>,
-    //     position: Option<[f32; 4]>,
-    //     speed: Option<u64>,
-    //     speed_factor: Option<f32>,
-    // },
     #[serde(rename = "gcode_move")]
     GcodeMove,
     #[serde(rename = "toolhead")]
     Toolhead(Vec<String>),
-    // Toolhead {
-    //     toolhead: Vec<String>,
-    // },
-    // Toolhead(Vec<ToolheadValue>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
