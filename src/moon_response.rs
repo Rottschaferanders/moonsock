@@ -77,112 +77,112 @@ pub enum MoonResultData {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GcodeMove {
-    speed_factor: Option<f64>,
-    speed: Option<f64>,
-    extrude_factor: Option<f64>,
-    absolute_coordinates: Option<bool>,
-    absolute_extrude: Option<bool>,
-    homing_origin: Option<Vec<f64>>,
-    position: Option<Vec<f64>>,
-    gcode_position: Option<Vec<f64>>,
+    pub speed_factor: Option<f64>,
+    pub speed: Option<f64>,
+    pub extrude_factor: Option<f64>,
+    pub absolute_coordinates: Option<bool>,
+    pub absolute_extrude: Option<bool>,
+    pub homing_origin: Option<Vec<f64>>,
+    pub position: Option<Vec<f64>>,
+    pub gcode_position: Option<Vec<f64>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Toolhead {
-    homed_axes: Option<String>,
-    print_time: Option<f64>,
-    estimated_print_time: Option<f64>,
-    extruder: Option<String>,
-    position: Option<Vec<f64>>,
-    max_velocity: Option<f64>,
-    max_accel: Option<f64>,
-    max_accel_to_decel: Option<f64>,
-    square_corner_velocity: Option<f64>,
+    pub homed_axes: Option<String>,
+    pub print_time: Option<f64>,
+    pub estimated_print_time: Option<f64>,
+    pub extruder: Option<String>,
+    pub position: Option<Vec<f64>>,
+    pub max_velocity: Option<f64>,
+    pub max_accel: Option<f64>,
+    pub max_accel_to_decel: Option<f64>,
+    pub square_corner_velocity: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Configfile {
-    config: Option<Value>, // Can be more specific if the structure is known
-    settings: Option<Value>, // Can be more specific if the structure is known
-    save_config_pending: Option<bool>,
+    pub config: Option<Value>, // Can be more specific if the structure is known
+    pub settings: Option<Value>, // Can be more specific if the structure is known
+    pub save_config_pending: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Extruder {
-    temperature: Option<f64>,
-    target: Option<f64>,
-    power: Option<f64>,
-    pressure_advance: Option<f64>,
-    smooth_time: Option<f64>,
+    pub temperature: Option<f64>,
+    pub target: Option<f64>,
+    pub power: Option<f64>,
+    pub pressure_advance: Option<f64>,
+    pub smooth_time: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HeaterBed {
-    temperature: Option<f64>,
-    target: Option<f64>,
-    power: Option<f64>,
+    pub temperature: Option<f64>,
+    pub target: Option<f64>,
+    pub power: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Fan {
-    speed: Option<f64>,
-    rpm: Option<u32>,
+    pub speed: Option<f64>,
+    pub rpm: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdleTimeout {
-    state: Option<String>,
-    printing_time: Option<f64>,
+    pub state: Option<String>,
+    pub printing_time: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VirtualSdcard {
-    progress: Option<f64>,
-    is_active: Option<bool>,
-    file_position: Option<u64>,
+    pub progress: Option<f64>,
+    pub is_active: Option<bool>,
+    pub file_position: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PrintStats {
-    filename: Option<String>,
-    total_duration: Option<f64>,
-    print_duration: Option<f64>,
-    filament_used: Option<f64>,
-    state: Option<String>,
-    message: Option<String>,
-    info: Option<PrintStatsInfo>,
+    pub filename: Option<String>,
+    pub total_duration: Option<f64>,
+    pub print_duration: Option<f64>,
+    pub filament_used: Option<f64>,
+    pub state: Option<String>,
+    pub message: Option<String>,
+    pub info: Option<PrintStatsInfo>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PrintStatsInfo {
-    total_layer: Option<u32>,
-    current_layer: Option<u32>,
+    pub total_layer: Option<u32>,
+    pub current_layer: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DisplayStatus {
-    message: Option<String>,
-    progress: Option<f64>,
+    pub message: Option<String>,
+    pub progress: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Status {
-    gcode_move: Option<GcodeMove>,
-    toolhead: Option<Toolhead>,
-    configfile: Option<Configfile>,
-    extruder: Option<Extruder>,
-    heater_bed: Option<HeaterBed>,
-    fan: Option<Fan>,
-    idle_timeout: Option<IdleTimeout>,
-    virtual_sdcard: Option<VirtualSdcard>,
-    print_stats: Option<PrintStats>,
-    display_status: Option<DisplayStatus>,
+    pub gcode_move: Option<GcodeMove>,
+    pub toolhead: Option<Toolhead>,
+    pub configfile: Option<Configfile>,
+    pub extruder: Option<Extruder>,
+    pub heater_bed: Option<HeaterBed>,
+    pub fan: Option<Fan>,
+    pub idle_timeout: Option<IdleTimeout>,
+    pub virtual_sdcard: Option<VirtualSdcard>,
+    pub print_stats: Option<PrintStats>,
+    pub display_status: Option<DisplayStatus>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct QueryPrinterObjectsResponse {
-    eventtime: f64,
-    status: Status,
+    pub eventtime: f64,
+    pub status: Status,
 }
 
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

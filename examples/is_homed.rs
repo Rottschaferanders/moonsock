@@ -6,10 +6,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url = "ws://scanhead.local:7125/websocket";
     let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
     // let status = connection.get_printer_info(Some(1234)).await.unwrap();
-    match connection.check_printer_homed().await {
-        Ok(is_printer_homed) => {
+    match connection.get_homed_axes().await {
+        Ok(homed_printer_axes) => {
             // let state = printer_info;
-            println!("Printer Home Status: {:?}", is_printer_homed);
+            println!("homed_printer_axes: {:?}", homed_printer_axes);
         },
         Err(e) => {
             eprintln!("Error getting printer info: {}", e.to_string());

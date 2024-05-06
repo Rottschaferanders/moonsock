@@ -293,14 +293,8 @@ impl MoonConnection {
             _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
         }
     }
-    pub async fn check_printer_homed(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
-        // Implement your Moonraker query logic here
-        // Example structure:
+    pub async fn get_homed_axes(&mut self) -> Result<String, Box<dyn std::error::Error>> {
         let param = MoonParam::PrinterObjectsQuery{
-            // objects: PrinterObject::Toolhead {
-            //     toolhead: vec!["homed_axes".to_string()],
-            // }
-            // objects: PrinterObject::Toolhead(vec![ToolheadValue::HomedAxes(String::new())]),
             objects: PrinterObject::Toolhead(vec!["homed_axes".to_string()]),
         };
         let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
@@ -309,10 +303,25 @@ impl MoonConnection {
     
         println!("Check printer homed_response: {:?}", response);
     
-        // Parse response and extract 'homed' status
-        // ... Replace with actual parsing logic 
-        let is_homed = true; // Placeholder - replace with actual logic
-    
-        Ok(is_homed)
+        match response {
+            MoonMSG::MoonResult { result, .. } => {
+                match result {
+                    MoonResultData::QueryPrinterObjectsResponse(res) => {
+                        match res.status.toolhead {
+                            Some(toolhead) => {
+                                match toolhead.homed_axes {
+                                    Some(homed_axes) => Ok(homed_axes),
+                                    None => Err("Error: Could not find `homed_axes` in response from printer".into()),
+                                }
+                            },
+                            None => Err("Error: Could not find the `toolhead` field in response from printer".into()),
+                        }
+                    },
+                    _ => Err("Error: Printer did not return expected response".into()),
+                }
+            },
+            _ => Err("Error: Printer did not return expected response".into()),
+        }
+        // Ok(is_homed)
     }
 }
