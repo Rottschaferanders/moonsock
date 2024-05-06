@@ -1,3 +1,4 @@
+use serde::Serialize;
 use tokio::sync::mpsc::{
     error::SendError,
     Permit,
@@ -9,9 +10,7 @@ use url::Url;
 // use crate::*;
 
 use crate::{
-    MoonMSG, MoonResultData, MoonMethod, 
-    // PrinterState, 
-    PrinterInfoResponse
+    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, MoonResultData, PrinterInfoResponse
 };
 
 /// A WebSocket connection to a Moonraker server.
@@ -293,5 +292,27 @@ impl MoonConnection {
             },
             _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
         }
+    }
+    pub async fn check_printer_homed(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        // Implement your Moonraker query logic here
+        // Example structure:
+        let param = MoonParam::PrinterObjectsQuery{
+            // objects: PrinterObject::Toolhead {
+            //     toolhead: vec!["homed_axes".to_string()],
+            // }
+            // objects: PrinterObject::Toolhead(vec![ToolheadValue::HomedAxes(String::new())]),
+            objects: PrinterObject::Toolhead(vec!["homed_axes".to_string()]),
+        };
+        let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
+        println!("Sending: {}", serde_json::to_string_pretty(&msg).unwrap());
+        let response = self.send_listen(msg).await?;
+    
+        println!("Check printer homed_response: {:?}", response);
+    
+        // Parse response and extract 'homed' status
+        // ... Replace with actual parsing logic 
+        let is_homed = true; // Placeholder - replace with actual logic
+    
+        Ok(is_homed)
     }
 }

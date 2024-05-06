@@ -4,6 +4,8 @@ pub mod messages;
 pub mod connection;
 pub mod moon_method;
 pub mod moon_param;
+mod moon_response;
+pub use moon_response::*;
 
 // Exports:
 pub use connection::MoonConnection;
@@ -149,20 +151,20 @@ pub enum MoonMSG {
     // }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum MoonOk {
-    #[serde(rename = "ok")]
-    Ok,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub enum MoonOk {
+//     #[serde(rename = "ok")]
+//     Ok,
+// }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(untagged)]
-pub enum MoonResultData {
-    #[serde(alias = "ok")]
-    Ok(MoonOk),
-    TemperatureStore(TemperatureStore),
-    PrinterInfoResponse(PrinterInfoResponse),
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// #[serde(untagged)]
+// pub enum MoonResultData {
+//     #[serde(alias = "ok")]
+//     Ok(MoonOk),
+//     TemperatureStore(TemperatureStore),
+//     PrinterInfoResponse(PrinterInfoResponse),
+// }
 
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 // #[serde(untagged)]
