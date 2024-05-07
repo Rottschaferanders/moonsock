@@ -90,7 +90,7 @@ impl MoonConnection {
                                     break;
                                 },
                                 Err(e) => {
-                                    println!("Failed to send shutdown signal to websocket task");
+                                    println!("Error: Failed to send shutdown signal to websocket task: {}", e.to_string());
                                 },
                             }
                             break;
