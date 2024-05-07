@@ -98,11 +98,7 @@ fn notify_proc_stat_update() {
                 }
             ]
     }"##;
-    // let example = example_notify_proc_stat_update();
-    // let example_string = serde_json::to_string_pretty(&example).unwrap();
-    // println!("{}", example_string);
     let serialized: MoonMSG = serde_json::from_str(&message).unwrap();
-    // println!("{:?}", &serialized);
     assert_eq!(serialized.method(), MoonMethod::NotifyProcStatUpdate);
     match serialized.params()[0].clone() {
         MoonParam::NotifyProcStatUpdate {

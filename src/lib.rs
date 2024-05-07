@@ -161,36 +161,63 @@ impl MoonMSG {
     pub fn gcode(gcode: String, id: u32) -> MoonMSG {
         MoonMSG::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: gcode.to_string() }), Some(id))
     }
-    pub fn method(&self) ->  MoonMethod {
+    // pub fn method(&self) ->  MoonMethod {
+    //     match self {
+    //         MoonMSG::MoonResult { result, .. } => {
+    //             panic!("No method on type MoonMSG::MoonResult: {:?}", result);
+    //         },
+    //         MoonMSG::MoonError { error, .. } => {
+    //             panic!("Error: {:?}", error);
+    //         },
+    //         MoonMSG::MethodParamID { method, .. } => method.clone(),
+    //         MoonMSG::MethodParamVecID { method, .. } => method.clone(),
+    //         MoonMSG::MethodParam { method, .. } => method.clone(),
+    //         MoonMSG::MethodParamVec { method, .. } => method.clone(),
+    //         MoonMSG::MethodID { method, .. } => method.clone(),
+    //         MoonMSG::Method { method, .. } => method.clone(),
+    //         MoonMSG::CouldNotParseParams { method, .. } => method.clone(),
+    //         MoonMSG::CouldNotParseParamsID { method, .. } => method.clone(),
+    //         MoonMSG::CouldNotParseMethod { method, .. } => {
+    //             panic!("CouldNotParseMethod does not have a method of type MoonMethod, it is String: {:?}", method);
+    //         },
+    //         MoonMSG::CouldNotParseMethodID { method, .. } => {
+    //             panic!("CouldNotParseMethodID does not have a method of type MoonMethod, it is String: {:?}", method);
+    //         },
+    //         MoonMSG::CouldNotParseMethodParams { method, .. } => {
+    //             panic!("CouldNotParseMethodParams does not have a method of type MoonMethod, it is String: {:?}", method);
+    //         },
+    //         MoonMSG::CouldNotParseMethodParamsID { method, .. } => {
+    //             panic!("CouldNotParseMethodParamsID does not have a method of type MoonMethod, it is String: {:?}", method);
+    //         },
+    //         MoonMSG::Empty => {
+    //             MoonMethod::Empty
+    //         },
+    //     }
+    // }
+    pub fn method(&self) -> MoonMethod {
         match self {
             MoonMSG::MoonResult { result, .. } => {
                 panic!("No method on type MoonMSG::MoonResult: {:?}", result);
             },
+            MoonMSG::Empty => MoonMethod::Empty,
+            // Extract 'method' directly in these cases
+            MoonMSG::MethodParamID { method, .. } |
+            MoonMSG::MethodParamVecID { method, .. } | 
+            MoonMSG::MethodParam { method, .. } | 
+            MoonMSG::MethodParamVec { method, .. } | 
+            MoonMSG::MethodID { method, .. } | 
+            MoonMSG::Method { method, .. } |
+            MoonMSG::CouldNotParseParams { method, .. } |
+            MoonMSG::CouldNotParseParamsID { method, .. } => method.clone(),
+            // Handle error cases
+            MoonMSG::CouldNotParseMethod { .. } |
+            MoonMSG::CouldNotParseMethodID { .. } |
+            MoonMSG::CouldNotParseMethodParams { .. } |
+            MoonMSG::CouldNotParseMethodParamsID { .. } => {
+                panic!("Error extracting method (check message type)") 
+            }
             MoonMSG::MoonError { error, .. } => {
                 panic!("Error: {:?}", error);
-            },
-            MoonMSG::MethodParamID { method, .. } => method.clone(),
-            MoonMSG::MethodParamVecID { method, .. } => method.clone(),
-            MoonMSG::MethodParam { method, .. } => method.clone(),
-            MoonMSG::MethodParamVec { method, .. } => method.clone(),
-            MoonMSG::MethodID { method, .. } => method.clone(),
-            MoonMSG::Method { method, .. } => method.clone(),
-            MoonMSG::CouldNotParseParams { method, .. } => method.clone(),
-            MoonMSG::CouldNotParseParamsID { method, .. } => method.clone(),
-            MoonMSG::CouldNotParseMethod { method, .. } => {
-                panic!("CouldNotParseMethod does not have a method of type MoonMethod, it is String: {:?}", method);
-            },
-            MoonMSG::CouldNotParseMethodID { method, .. } => {
-                panic!("CouldNotParseMethodID does not have a method of type MoonMethod, it is String: {:?}", method);
-            },
-            MoonMSG::CouldNotParseMethodParams { method, .. } => {
-                panic!("CouldNotParseMethodParams does not have a method of type MoonMethod, it is String: {:?}", method);
-            },
-            MoonMSG::CouldNotParseMethodParamsID { method, .. } => {
-                panic!("CouldNotParseMethodParamsID does not have a method of type MoonMethod, it is String: {:?}", method);
-            },
-            MoonMSG::Empty => {
-                MoonMethod::Empty
             },
         }
     }
