@@ -340,7 +340,32 @@ impl MoonConnection {
             _ => Err("Error: Printer did not return expected response".into()),
         }
     }
+    pub async fn is_homed(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        let homed_axes = self.get_homed_axes().await?;
+        // Assuming 'XYZ' or similar indicates all required axes are homed 
+        Ok(homed_axes.to_lowercase().contains("xyz")) 
+    }
 
+    // pub async fn is_z_tilt_applied(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+    //     let param = MoonParam::PrinterObjectsQuery {
+    //         objects: PrinterObject::ZTilt(None), 
+    //     };
+    //     let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413)); // Example ID
+
+    //     match self.send_listen(msg).await? {
+    //         MoonMSG::MoonResult { result, .. } => match result {
+    //             MoonResultData::QueryPrinterObjectsResponse(res) => {
+    //                 match res.status.z_tilt {
+    //                     Some(z_tilt) => Ok(z_tilt.applied),
+    //                     None => Err("Error: 'z_tilt' object not found in response".into()),
+    //                 }
+    //             }
+    //             _ => Err("Error: Unexpected response format from printer".into()),
+    //         },
+    //         _ => Err("Error: Unexpected response type from printer".into()),
+    //     }
+    // }
+    
     pub async fn is_z_tilt_applied(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
         let param = MoonParam::PrinterObjectsQuery {
             objects: PrinterObject::ZTilt(None), 
@@ -355,9 +380,9 @@ impl MoonConnection {
                         None => Err("Error: 'z_tilt' object not found in response".into()),
                     }
                 }
-                _ => Err("Error: Unexpected response format from printer".into()),
+                _ => Err("Error: Unexpected response format from Moonraker".into()),
             },
-            _ => Err("Error: Unexpected response type from printer".into()),
+            _ => Err("Error: Unexpected response type from Moonraker".into()),
         }
     }
 }

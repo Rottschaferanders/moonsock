@@ -25,13 +25,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let url = format!("ws://{hostname}:{port}/websocket");
     let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
-    match connection.get_homed_axes().await {
-        Ok(homed_printer_axes) => {
-            println!("homed_printer_axes: {:?}", homed_printer_axes);
-        },
-        Err(e) => {
-            eprintln!("Error getting printer info: {}", e.to_string());
-        }
+
+    let is_homed = connection.is_homed().await?;
+    if is_homed {
+        println!("Printer is homed!");
+    } else {
+        println!("Printer is not homed");
     }
+    // match connection.get_homed_axes().await {
+    //     Ok(homed_printer_axes) => {
+    //         println!("homed_printer_axes: {:?}", homed_printer_axes);
+    //     },
+    //     Err(e) => {
+    //         eprintln!("Error getting printer info: {}", e.to_string());
+    //     }
+    // }
     Ok(())
 }
