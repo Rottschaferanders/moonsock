@@ -24,7 +24,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let url = format!("ws://{hostname}:{port}/websocket");
-    let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
+    // let mut connection = MoonConnection::new(url.to_string(), 1000, 1000, false).await;
+    let mut connection = MoonConnection::new(url, None, None, false).await;
 
     let is_homed = connection.is_homed().await?;
     if is_homed {

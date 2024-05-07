@@ -13,10 +13,14 @@ use crate::{
     moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, moon_result::MoonResultData, PrinterInfoResponse
 };
 
+pub const DEFAULT_WRITER_BUFFER_SIZE: usize = 1000;
+pub const DEFAULT_READER_BUFFER_SIZE: usize = 1000;
+
 /// A WebSocket connection to a Moonraker server.
 pub struct MoonConnection {
     write_stream: tokio::sync::mpsc::Sender<MoonMSG>,
     read_stream: tokio::sync::mpsc::Receiver<MoonMSG>,
+    shutdown_sender: tokio::sync::mpsc::Sender<bool>,
 }
 impl MoonConnection {
     /// Creates a new `MoonConnection` instance and establishes a WebSocket connection to the specified `url`.
@@ -30,19 +34,36 @@ impl MoonConnection {
     /// # Returns
     ///
     /// A new `MoonConnection` instance.
-    pub async fn new(url: String, writer_buffer_size: usize, reader_buffer_size: usize) -> MoonConnection {
+    pub async fn new(url: String, writer_buffer_size: Option<usize>, reader_buffer_size: Option<usize>, debug: bool) -> MoonConnection {
+        let writer_buffer_size = writer_buffer_size.unwrap_or(DEFAULT_WRITER_BUFFER_SIZE);
+        let reader_buffer_size = reader_buffer_size.unwrap_or(DEFAULT_READER_BUFFER_SIZE);
         let (ws_writer_sender, mut ws_writer_receiver) = tokio::sync::mpsc::channel(writer_buffer_size);
+        let (shutdown_sender, mut shutdown_receiver) = tokio::sync::mpsc::channel(10);
         let connect_addr = Url::parse(&url).unwrap();
         let (ws_stream, _) = match connect_async(&connect_addr).await {
             Ok(stuff) => stuff,
             Err(_) => panic!("Error connecting to websocket"),
         };
+        if debug {
+            println!("WebSocket handshake has been successfully completed");
+        }
 
+        let (websocket_shutdown_sender, mut websocket_shutdown_receiver) = tokio::sync::mpsc::channel(10);
         let (mut moon_socket_sink, mut moon_socket_stream) = ws_stream.split();
 
         // Spawns Moonraker Websocket writer thread
         tokio::spawn(async move {
             while let Some(msg) = ws_writer_receiver.recv().await {
+                // I think we want the websocket spawned loop to recieve the shutdown signal from 
+                // the MoonMSG parsing stream.
+                match websocket_shutdown_receiver.try_recv() {
+                    Ok(should_shutdown) => {
+                        if should_shutdown {
+                            break;
+                        }
+                    },
+                    Err(_) => {},
+                }
                 let mut vec = serde_json::to_vec(&msg).expect("Could not Serialize Request");
                 vec.truncate(vec.len());
                 let result = Pin::new(&mut moon_socket_sink)
@@ -60,12 +81,32 @@ impl MoonConnection {
         // Spawns Moonraker Websocket reader thread
         tokio::spawn(async move {
             while let Some(message) = moon_socket_stream.next().await {
+                // Check if we've received a shutdown signal and leave the while loop if so
+                match shutdown_receiver.try_recv() {
+                    Ok(should_shutdown) => {
+                        if should_shutdown {
+                            match websocket_shutdown_sender.send(true).await {
+                                Ok(_) => {
+                                    break;
+                                },
+                                Err(e) => {
+                                    println!("Failed to send shutdown signal to websocket task");
+                                },
+                            }
+                            break;
+                        }
+                    },
+                    Err(_) => {},
+                }
                 match message {
                     Ok(msg) => {
                         if msg.len() == 0 {
                             continue;
                         }
                         let message = msg.into_text().unwrap();
+                        if debug {
+                            println!("Received: {}", message);
+                        }
                         let parsed = serde_json::from_str(&message);
                         match parsed {
                             Ok(message) => match ws_reader_sender.send(message).await {
@@ -80,7 +121,9 @@ impl MoonConnection {
                             },
                         }
                     }
-                    Err(_) => println!("Hi, I'm a error"),
+                    Err(e) => {
+                        eprintln!("Error message from moonraker socket: {}", e.to_string());
+                    },
                 }
             }
         });
@@ -88,6 +131,19 @@ impl MoonConnection {
         MoonConnection {
             write_stream: ws_writer_sender,
             read_stream: ws_reader_receiver,
+            shutdown_sender,
+        }
+    }
+
+    pub async fn shutdown(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        match self.shutdown_sender.send(true).await {
+            Ok(_) => {
+                Ok(())
+            },
+            Err(e) => {
+                // eprintln!("Failed to send shutdown signal to the moonraker message stream");
+                Err(format!("Failed to send shutdown signal to the moonraker message stream: {}", e.to_string()).into())
+            },
         }
     }
     /// Creates a new `MoonConnection` instance and establishes a WebSocket connection to the specified `url`.
@@ -102,67 +158,67 @@ impl MoonConnection {
     /// # Returns
     ///
     /// A new `MoonConnection` instance.
-    pub async fn new_debug(url: String, writer_buffer_size: usize, reader_buffer_size: usize) -> MoonConnection {
-        let (ws_writer_sender, mut ws_writer_receiver) = tokio::sync::mpsc::channel(writer_buffer_size);
-        let connect_addr = Url::parse(&url).unwrap();
-        let (ws_stream, _) = match connect_async(&connect_addr).await {
-            Ok(stuff) => stuff,
-            Err(_) => panic!("Error connecting to websocket"),
-        };
-        println!("WebSocket handshake has been successfully completed");
-        let (mut moon_socket_sink, mut moon_socket_stream) = ws_stream.split();
+    // pub async fn new_debug(url: String, writer_buffer_size: usize, reader_buffer_size: usize) -> MoonConnection {
+    //     let (ws_writer_sender, mut ws_writer_receiver) = tokio::sync::mpsc::channel(writer_buffer_size);
+    //     let connect_addr = Url::parse(&url).unwrap();
+    //     let (ws_stream, _) = match connect_async(&connect_addr).await {
+    //         Ok(stuff) => stuff,
+    //         Err(_) => panic!("Error connecting to websocket"),
+    //     };
+    //     println!("WebSocket handshake has been successfully completed");
+    //     let (mut moon_socket_sink, mut moon_socket_stream) = ws_stream.split();
 
-        // Spawns Moonraker Websocket writer thread
-        tokio::spawn(async move {
-            while let Some(msg) = ws_writer_receiver.recv().await {
-                let mut vec = serde_json::to_vec(&msg).expect("Could not Serialize Request");
-                vec.truncate(vec.len());
-                let result = Pin::new(&mut moon_socket_sink)
-                    .send(Message::binary(vec))
-                    .await;
-                match result {
-                    Ok(_) => continue,
-                    Err(_) => println!("Unable to send to moon_socket_sink"),
-                }
-            }
-        });
-        println!("Split websocket Stream");
-        let (ws_reader_sender, ws_reader_receiver) = tokio::sync::mpsc::channel(reader_buffer_size);
-        println!("Created Reader Runtime");
-        // Spawns Moonraker Websocket reader thread
-        tokio::spawn(async move {
-            while let Some(message) = moon_socket_stream.next().await {
-                match message {
-                    Ok(msg) => {
-                        if msg.len() == 0 {
-                            continue;
-                        }
-                        let message = msg.into_text().unwrap();
-                        println!("Received: {}", message);
-                        let parsed = serde_json::from_str(&message);
-                        match parsed {
-                            Ok(message) => match ws_reader_sender.send(message).await {
-                                Ok(()) => continue,
-                                Err(_) => println!("Unable to send to ws_reader_sender"),
-                            },
-                            Err(_) => {
-                                println!("----------------------------MESSAGE NOT PARSED----------------------------");
-                                println!("Message Length: {}", message.len());
-                                println!("{}", message);
-                                println!("--------------------------------------------------------------------------");
-                            },
-                        }
-                    }
-                    Err(_) => println!("Hi, I'm a error"),
-                }
-            }
-        });
+    //     // Spawns Moonraker Websocket writer thread
+    //     tokio::spawn(async move {
+    //         while let Some(msg) = ws_writer_receiver.recv().await {
+    //             let mut vec = serde_json::to_vec(&msg).expect("Could not Serialize Request");
+    //             vec.truncate(vec.len());
+    //             let result = Pin::new(&mut moon_socket_sink)
+    //                 .send(Message::binary(vec))
+    //                 .await;
+    //             match result {
+    //                 Ok(_) => continue,
+    //                 Err(_) => println!("Unable to send to moon_socket_sink"),
+    //             }
+    //         }
+    //     });
+    //     println!("Split websocket Stream");
+    //     let (ws_reader_sender, ws_reader_receiver) = tokio::sync::mpsc::channel(reader_buffer_size);
+    //     println!("Created Reader Runtime");
+    //     // Spawns Moonraker Websocket reader thread
+    //     tokio::spawn(async move {
+    //         while let Some(message) = moon_socket_stream.next().await {
+    //             match message {
+    //                 Ok(msg) => {
+    //                     if msg.len() == 0 {
+    //                         continue;
+    //                     }
+    //                     let message = msg.into_text().unwrap();
+    //                     println!("Received: {}", message);
+    //                     let parsed = serde_json::from_str(&message);
+    //                     match parsed {
+    //                         Ok(message) => match ws_reader_sender.send(message).await {
+    //                             Ok(()) => continue,
+    //                             Err(_) => println!("Unable to send to ws_reader_sender"),
+    //                         },
+    //                         Err(_) => {
+    //                             println!("----------------------------MESSAGE NOT PARSED----------------------------");
+    //                             println!("Message Length: {}", message.len());
+    //                             println!("{}", message);
+    //                             println!("--------------------------------------------------------------------------");
+    //                         },
+    //                     }
+    //                 }
+    //                 Err(_) => println!("Hi, I'm a error"),
+    //             }
+    //         }
+    //     });
 
-        MoonConnection {
-            write_stream: ws_writer_sender,
-            read_stream: ws_reader_receiver,
-        }
-    }
+    //     MoonConnection {
+    //         write_stream: ws_writer_sender,
+    //         read_stream: ws_reader_receiver,
+    //     }
+    // }
     
     /// The most basic of the sender methods. Adds a message to the WebSocket writer queue to be sent to the Moonraker instance.
     /// This function is non-blocking and returns immediately.
@@ -220,11 +276,16 @@ impl MoonConnection {
     pub async fn recv(&mut self) -> Option<MoonMSG> {
         self.read_stream.recv().await
     }
-    pub async fn send_checked(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
-        let this_id = 3243;
+    /// Sends message and then waits for the printer to send an Ok message back
+    // pub async fn send_checked(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+    pub async fn send_wait_for_ok(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+        // let this_id = 3243;
+        // Should probably keep a vector of ids that have already been used so that
+        // we can check against it for collisions. Would incure a lot of performance cost
+        // especially in some situations where many commands are sent to the printer in a short amount of time.
+        let this_id = rand::random();
         let msg = message.set_id(this_id);
         self.send(msg).await?;
-        // let mut ok_received = false;
         loop {
             match self.recv().await {
                 Some(msg) => {

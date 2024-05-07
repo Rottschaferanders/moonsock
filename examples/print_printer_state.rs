@@ -24,7 +24,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let url = format!("ws://{hostname}:{port}/websocket");
-    let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
+    // let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
+    let mut connection = MoonConnection::new(url, None, None, false).await;
 
     match connection.get_printer_info(Some(1234)).await {
         Ok(printer_info) => {
