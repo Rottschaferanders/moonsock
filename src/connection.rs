@@ -10,7 +10,7 @@ use url::Url;
 // use crate::*;
 
 use crate::{
-    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, moon_response::MoonResultData, PrinterInfoResponse
+    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, moon_result::MoonResultData, PrinterInfoResponse
 };
 
 /// A WebSocket connection to a Moonraker server.
@@ -266,6 +266,27 @@ impl MoonConnection {
             }
         }
     }
+    pub async fn send_listen_debug(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
+        let this_id = message.id().unwrap_or(rand::random());
+        println!("Using message id: {this_id}");
+        self.send(message).await?;
+        loop {
+            match self.recv().await {
+                Some(msg) => {
+                    match msg.id() {
+                        Some(id) => {
+                            if id == this_id {
+                                println!("Received: \n {msg:?}");
+                                return Ok(msg)
+                            }
+                        },
+                        None => continue,
+                    }
+                },
+                None => continue,
+            }
+        }
+    }
     pub async fn get_printer_info(&mut self, message_id: Option<u32>) -> Result<PrinterInfoResponse, Box<dyn std::error::Error>> {
         let message = MoonMSG::new(MoonMethod::PrinterInfo, None, message_id);
         // let result = self.send_listen(message).await?;
@@ -293,7 +314,7 @@ impl MoonConnection {
     }
     pub async fn get_homed_axes(&mut self) -> Result<String, Box<dyn std::error::Error>> {
         let param = MoonParam::PrinterObjectsQuery{
-            objects: PrinterObject::Toolhead(vec!["homed_axes".to_string()]),
+            objects: PrinterObject::Toolhead(Some(vec!["homed_axes".to_string()])),
         };
         let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
         // println!("Sending: {}", serde_json::to_string_pretty(&msg).unwrap());
@@ -317,6 +338,26 @@ impl MoonConnection {
                 }
             },
             _ => Err("Error: Printer did not return expected response".into()),
+        }
+    }
+
+    pub async fn is_z_tilt_applied(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        let param = MoonParam::PrinterObjectsQuery {
+            objects: PrinterObject::ZTilt(None), 
+        };
+        let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413)); // Example ID
+
+        match self.send_listen(msg).await? {
+            MoonMSG::MoonResult { result, .. } => match result {
+                MoonResultData::QueryPrinterObjectsResponse(res) => {
+                    match res.status.z_tilt {
+                        Some(z_tilt) => Ok(z_tilt.applied),
+                        None => Err("Error: 'z_tilt' object not found in response".into()),
+                    }
+                }
+                _ => Err("Error: Unexpected response format from printer".into()),
+            },
+            _ => Err("Error: Unexpected response type from printer".into()),
         }
     }
 }

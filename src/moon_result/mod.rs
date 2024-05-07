@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-// use serde_json::Value;
 
 mod printer_state;
 pub use printer_state::*;
@@ -12,6 +11,9 @@ pub use gcode::*;
 
 mod printer_object;
 pub use printer_object::*;
+
+mod printer_objects_list;
+pub use printer_objects_list::*;
 
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -28,5 +30,6 @@ pub enum MoonResultData {
     Ok(MoonOk),
     TemperatureStore(TemperatureStore),
     PrinterInfoResponse(PrinterInfoResponse),
-    QueryPrinterObjectsResponse(QueryPrinterObjectsResponse)
+    QueryPrinterObjectsResponse(QueryPrinterObjectsResponse),
+    PrinterObjectsListResponse(PrinterObjectsListResponse),
 }

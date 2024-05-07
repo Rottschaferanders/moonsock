@@ -1,4 +1,4 @@
-use moonsock::{MoonMSG, moon_response::MoonResultData, moon_response::{TemperatureStore, TempStoreData, HeaterNames}};
+use moonsock::{MoonMSG, moon_result::MoonResultData, moon_result::{TemperatureStore, TempStoreData, HeaterNames}};
 use std::{
     string::String,
     fs::File,

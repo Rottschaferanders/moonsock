@@ -28,14 +28,15 @@ pub enum MoonMethod {
     #[serde(rename="printer.firmware_restart")]
     FirmwareRestart,
     /// Lists available printer objects
-    #[serde(rename="printer.printer.objects.list")]
+    #[serde(rename="printer.objects.list")]
     PrinterObjectsList,
+    /// Gets the printer objects.
     #[serde(rename="printer.objects.query")]
     PrinterObjectsQuery,
     #[serde(rename="printer.objects.subscribe")]
     PrinterObjectsSubscribe,
     #[serde(rename="printer.gcode.script")]
-    GcodeScript,
+    PrinterGcodeScript,
     #[serde(rename="printer.gcode.help")]
     PrinterGcodeHelp,
     #[serde(rename="printer.print.start")]

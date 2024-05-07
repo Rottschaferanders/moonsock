@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-pub mod moon_response;
+pub mod moon_result;
 // mod moon_response;
 // pub use moon_response::*;
 
@@ -13,8 +13,9 @@ pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::MoonParam;
 // use messages::{PrinterState, PrinterInfoResponse};
-use moon_response::{
-    PrinterInfoResponse, 
+use moon_result::{
+    PrinterInfoResponse,
+    MoonResultData,
     // TemperatureStore, 
     // GcodeType,
 };
@@ -32,7 +33,7 @@ pub enum JsonRpcVersion {
 pub enum MoonMSG {
     MoonResult {
         jsonrpc: JsonRpcVersion,
-        result: moon_response::MoonResultData,
+        result: MoonResultData,
         id: u32,
     },
     MoonError {
@@ -106,132 +107,6 @@ pub enum MoonMSG {
     },
     Empty,
 }
-    // I think this is useless, but I don't want to scan through the moonraker API docs again.
-    // NotRecognized { value: serde_json::Value },
-    // ConnectionID { connection_id: u32 },
-    // KlippyHostInfo {
-    //     state: PrinterState,
-    //     state_message: String,
-    //     hostname: String,
-    //     software_version: String,
-    //     cpu_info: String,
-    //     klipper_path: String,
-    //     python_path: String,
-    //     log_file: String,
-    //     config_file: String,
-    // },
-    // #[serde(rename = "ok")]
-    // Ok,
-    // AvailablePrinterObjects { objects: Vec<String> },
-    // PrinterObjectStatus { eventtime: f32, status: Vec<PrinterObject>},
-    // EndstopStatuses { x: String, y: String, z: String },
-    // ServerInfo {
-    //     klippy_connected: bool,
-    //     klippy_state: PrinterState,
-    //     components: Vec<String>,
-    //     failed_components: Vec<String>,
-    //     registered_directories: Vec<String>,
-    //     warnings: Vec<String>,
-    //     websocket_count: u32,
-    //     moonraker_version: String,
-    //     api_version: [u32; 3],
-    //     api_version_string: String,
-    // },
-    // ServerInfoWithPlugins {
-    //     klippy_connected: bool,
-    //     klippy_state: PrinterState,
-    //     components: Vec<String>,
-    //     failed_components: Vec<String>,
-    //     plugins: Vec<String>,
-    //     failed_plugins: Vec<String>,
-    //     registered_directories: Vec<String>,
-    //     warnings: Vec<String>,
-    //     websocket_count: u32,
-    //     moonraker_version: String,
-    //     api_version: [u32; 3],
-    //     api_version_string: String,
-    // }
-
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub enum MoonOk {
-//     #[serde(rename = "ok")]
-//     Ok,
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// #[serde(untagged)]
-// pub enum MoonResultData {
-//     #[serde(alias = "ok")]
-//     Ok(MoonOk),
-//     TemperatureStore(TemperatureStore),
-//     PrinterInfoResponse(PrinterInfoResponse),
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// #[serde(untagged)]
-// pub enum TempStoreData {
-//     TempTgtsPowers {
-//         temperatures: Vec<f32>,
-//         targets: Vec<f32>,
-//         powers: Vec<f32>,
-//     },
-//     Temp {
-//         temperatures: Vec<f32>,
-//     },
-// }
-
-// /// The names of the items in the temperature store
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-// pub enum HeaterNames {
-//     #[serde(rename = "heater_bed")]
-//     HeaterBed,
-//     #[serde(rename = "extruder")]
-//     Extruder,
-//     #[serde(rename = "extruder1")]
-//     Extruder1,
-//     #[serde(rename = "extruder2")]
-//     Extruder2,
-//     #[serde(rename = "extruder3")]
-//     Extruder3,
-//     #[serde(rename = "extruder4")]
-//     Extruder4,
-//     #[serde(rename = "extruder5")]
-//     Extruder5,
-//     #[serde(rename = "extruder6")]
-//     Extruder6,
-//     #[serde(rename = "extruder7")]
-//     Extruder7,
-//     #[serde(rename = "extruder8")]
-//     Extruder8,
-//     #[serde(rename = "extruder9")]
-//     Extruder9,
-//     #[serde(rename = "extruder10")]
-//     Extruder10,
-//     #[serde(rename = "temperature_fan")]
-//     TemperatureFan,
-//     #[serde(rename = "temperature_sensor")]
-//     TemperatureSensor,
-//     NameStr(String),
-// }
-// use std::collections::HashMap;
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct TemperatureStore {
-//     #[serde(flatten)]
-//     pub items: HashMap<HeaterNames, TempStoreData>,
-// }
-
-// impl TemperatureStore {
-//     pub fn new() -> Self {
-//         Self {
-//             items: HashMap::new(),
-//         }
-//     }
-//     pub fn add_to_hashmap(&mut self, key: HeaterNames, value: TempStoreData)  {
-//         self.items.insert(key, value);
-//     }
-// }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MoonErrorContent {
@@ -276,7 +151,7 @@ impl MoonMSG {
             id,
         }
     }
-    pub fn new_result(result: moon_response::MoonResultData, id: u32) -> MoonMSG {
+    pub fn new_result(result: moon_result::MoonResultData, id: u32) -> MoonMSG {
         MoonMSG::MoonResult {
             jsonrpc: JsonRpcVersion::V2_0,
             result,
@@ -284,7 +159,7 @@ impl MoonMSG {
         }
     }
     pub fn gcode(gcode: String, id: u32) -> MoonMSG {
-        MoonMSG::new(MoonMethod::GcodeScript, Some(MoonParam::GcodeScript { script: gcode.to_string() }), Some(id))
+        MoonMSG::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: gcode.to_string() }), Some(id))
     }
     pub fn method(&self) ->  MoonMethod {
         match self {

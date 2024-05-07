@@ -92,6 +92,11 @@ pub struct DisplayStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ZTilt {
+    pub applied: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PrinterObjectStatus {
     pub gcode_move: Option<GcodeMove>,
     pub toolhead: Option<Toolhead>,
@@ -103,6 +108,7 @@ pub struct PrinterObjectStatus {
     pub virtual_sdcard: Option<VirtualSdcard>,
     pub print_stats: Option<PrintStats>,
     pub display_status: Option<DisplayStatus>,
+    pub z_tilt: Option<ZTilt>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

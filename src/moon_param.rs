@@ -59,9 +59,11 @@ impl MoonParam {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PrinterObject {
     #[serde(rename = "gcode_move")]
-    GcodeMove,
+    GcodeMove(Option<Vec<String>>),
     #[serde(rename = "toolhead")]
-    Toolhead(Vec<String>),
+    Toolhead(Option<Vec<String>>),
+    #[serde(rename = "z_tilt")]
+    ZTilt(Option<Vec<String>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
