@@ -12,8 +12,8 @@ pub use gcode::*;
 mod printer_object;
 pub use printer_object::*;
 
-mod printer_objects_list;
-pub use printer_objects_list::*;
+mod notify;
+pub use notify::*;
 
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -30,6 +30,6 @@ pub enum MoonResultData {
     Ok(MoonOk),
     TemperatureStore(TemperatureStore),
     PrinterInfoResponse(PrinterInfoResponse),
-    QueryPrinterObjectsResponse(QueryPrinterObjectsResponse),
     PrinterObjectsListResponse(PrinterObjectsListResponse),
+    PrinterObjectsQueryResponse(PrinterObjectsQueryResponse),
 }

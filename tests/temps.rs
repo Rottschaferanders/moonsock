@@ -1,4 +1,8 @@
-use moonsock::{MoonMSG, moon_result::MoonResultData, moon_result::{TemperatureStore, TempStoreData, HeaterNames}};
+use moonsock::{
+    // MoonMSG,
+    MoonResponse,
+    response::{TemperatureStore, TempStoreData, HeaterNames, MoonResultData},
+};
 use std::{
     string::String,
     fs::File,
@@ -43,10 +47,12 @@ fn temperature_store_parse() {
         "id": 2043
     }"##;
 
-    let msg: MoonMSG = serde_json::from_str(message).unwrap();
+    // let msg: MoonMSG = serde_json::from_str(message).unwrap();
+    let msg: MoonResponse = serde_json::from_str(message).unwrap();
     // println!("Parsed: {:#?}", msg);
     match msg {
-        MoonMSG::MoonResult { result, .. } => {
+        // MoonMSG::MoonResult { result, .. } => {
+        MoonResponse::MoonResult { result, .. } => {
             // println!("Received Result: {}", id);
             // println!("Result: {:?}", result);
             match result {
@@ -95,12 +101,18 @@ fn temp_store_serialize() {
     let mut temp_store = TemperatureStore::new();
     temp_store.add_to_hashmap(HeaterNames::Extruder, extruder);
     temp_store.add_to_hashmap(HeaterNames::HeaterBed, bed);
-    let msg_two = MoonMSG::new_result(MoonResultData::TemperatureStore(temp_store), 1); 
+    // let msg_two = MoonMSG::new_result(MoonResultData::TemperatureStore(temp_store), 1);
+    let msg_two = MoonResponse::MoonResult {
+        jsonrpc: moonsock::JsonRpcVersion::V2_0,
+        result: MoonResultData::TemperatureStore(temp_store),
+        id: 1,
+    }; 
 
     let mut file = File::open(TEMP_STORE_JSON_PATH).unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
-    let file_parsed = serde_json::from_str::<MoonMSG>(&contents).unwrap();
+    // let file_parsed = serde_json::from_str::<MoonMSG>(&contents).unwrap();
+    let file_parsed = serde_json::from_str::<MoonResponse>(&contents).unwrap();
     
     assert_eq!(msg_two, file_parsed);
 }

@@ -1,7 +1,12 @@
-use moonsock::{MoonMSG, moon_result::{MoonResultData, MoonOk}};
+use moonsock::{
+    // MoonMSG, 
+    MoonResponse,
+    response::{MoonResultData, MoonOk}
+};
 #[test]
 fn result_ok() {
-    let message_struct = MoonMSG::MoonResult {
+    // let message_struct = MoonMSG::MoonResult {
+    let message_struct = MoonResponse::MoonResult {
         jsonrpc: moonsock::JsonRpcVersion::V2_0,
         result: MoonResultData::Ok(MoonOk::Ok),
         id: 1340,
@@ -13,9 +18,11 @@ fn result_ok() {
         "result": "ok", 
         "id": 1340
     }"##;
-    let message_parsed: MoonMSG = serde_json::from_str(message).unwrap();
+    // let message_parsed: MoonMSG = serde_json::from_str(message).unwrap();
+    let message_parsed: MoonResponse = serde_json::from_str(message).unwrap();
     match message_parsed {
-        MoonMSG::MoonResult { result, id, .. } => {
+        // MoonMSG::MoonResult { result, id, .. } => {
+        MoonResponse::MoonResult { result, id, .. } => {
             assert_eq!(result, MoonResultData::Ok(MoonOk::Ok));
             assert_eq!(id, 1340);
         }

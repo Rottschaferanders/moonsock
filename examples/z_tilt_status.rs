@@ -51,7 +51,8 @@
 //     Ok(())
 // }
 
-use moonsock::{moon_param::{MoonParam, PrinterObject}, moon_result::MoonResultData, MoonConnection, MoonMSG, MoonMethod};
+// use moonsock::{moon_param::{MoonParam, PrinterObject}, moon_result::MoonResultData, MoonConnection, MoonMSG, MoonMethod};
+use moonsock::MoonConnection;
 use std::env;
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;

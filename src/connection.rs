@@ -10,16 +10,35 @@ use url::Url;
 // use crate::*;
 
 use crate::{
-    moon_param::PrinterObject, MoonMSG, MoonMethod, MoonParam, moon_result::MoonResultData, PrinterInfoResponse
+    // moon_param::PrinterObject, 
+    // MoonMSG, 
+    response::{MoonResultData, PrinterObjectStatus, Toolhead, ZTilt}, MoonErrorContent, MoonMethod, MoonParam, MoonRequest, MoonResponse, 
+    PrinterInfoResponse, 
+    PrinterObject,
 };
 
 pub const DEFAULT_WRITER_BUFFER_SIZE: usize = 1000;
 pub const DEFAULT_READER_BUFFER_SIZE: usize = 1000;
 
+pub enum MoonSendError<T> {
+    SendError(tokio::sync::mpsc::error::SendError<T>),
+    MoonError(MoonErrorContent),
+    MoonResult(MoonResultData),
+}
+
+// impl<T> Into<tokio::sync::mpsc::error::SendError<T>> for MoonSendError<T> {
+impl<T> Into<MoonSendError<T>> for tokio::sync::mpsc::error::SendError<T> {
+    fn into(self) -> MoonSendError<T> {
+        MoonSendError::SendError(self)
+    }
+}
+
 /// A WebSocket connection to a Moonraker server.
 pub struct MoonConnection {
-    write_stream: tokio::sync::mpsc::Sender<MoonMSG>,
-    read_stream: tokio::sync::mpsc::Receiver<MoonMSG>,
+    // write_stream: tokio::sync::mpsc::Sender<MoonMSG>,
+    write_stream: tokio::sync::mpsc::Sender<MoonRequest>,
+    // read_stream: tokio::sync::mpsc::Receiver<MoonMSG>,
+    read_stream: tokio::sync::mpsc::Receiver<MoonResponse>,
     shutdown_sender: tokio::sync::mpsc::Sender<bool>,
 }
 impl MoonConnection {
@@ -232,9 +251,16 @@ impl MoonConnection {
     /// # Returns
     ///
     /// Returns `Ok(())` if the message was successfully added to the queue, or a `SendError<MoonMSG>` if the queue is full.
-    pub async fn send(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
-        self.write_stream.send(message).await?;
-        Ok(())
+    // pub async fn send(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+    // pub async fn send(&mut self, message: MoonRequest) -> Result<(), SendError<MoonResponse>> {
+    // pub async fn send(&mut self, message: MoonRequest) -> Result<(), MoonSendError<MoonRequest>> {
+    pub async fn send(&mut self, message: MoonRequest) -> Result<(), Box<dyn std::error::Error>> {
+        // self.write_stream.send(message).await.map_err(|e| e.into())?;
+        match self.write_stream.send(message).await {
+            Ok(()) => Ok(()),
+            Err(e) => Err(format!("Error sending `{:?}` to the `MoonConnection` request channel: {}", e.0, e.to_string()).into())
+        }
+        // Ok(())
     }
     
     /// Sends a message over the WebSocket connection, using a reserved spot in the writer queue.
@@ -255,8 +281,10 @@ impl MoonConnection {
     /// # Returns
     ///
     /// A `Result` indicating whether the message was successfully sent or not. An error here indicates that the websocket channel is probably closed.
-    pub async fn send_reserved(&mut self, message: MoonMSG) -> Result<(), SendError<()>> {
-        let permit = self.reserve().await?;
+    // pub async fn send_reserved(&mut self, message: MoonMSG) -> Result<(), SendError<()>> {
+    // pub async fn send_reserved(&mut self, message: MoonRequest) -> Result<(), SendError<()>> {
+    pub async fn send_reserved(&mut self, message: MoonRequest) -> Result<(), MoonSendError<()>> {
+        let permit = self.reserve().await.map_err(|e| e.into())?;
         permit.send(message);
         Ok(())
     }
@@ -265,7 +293,8 @@ impl MoonConnection {
     /// # Returns
     ///
     /// Returns a `Permit<MoonMSG>` if a permit was successfully reserved, or a `SendError<()>` if the connection has closed.
-    pub async fn reserve(&self) -> Result<Permit<MoonMSG>, SendError<()>> {
+    // pub async fn reserve(&self) -> Result<Permit<MoonMSG>, SendError<()>> {
+    pub async fn reserve(&self) -> Result<Permit<MoonRequest>, SendError<()>> {
         self.write_stream.reserve().await
     }
     /// Waits for a message to be received from the Moonraker instance.
@@ -273,24 +302,30 @@ impl MoonConnection {
     /// # Returns
     ///
     /// Returns an `Option<MoonMSG>` containing the received message, or `None` if the receiver channel has been closed.
-    pub async fn recv(&mut self) -> Option<MoonMSG> {
+    // pub async fn recv(&mut self) -> Option<MoonMSG> {
+    pub async fn recv(&mut self) -> Option<MoonResponse> {
         self.read_stream.recv().await
     }
     /// Sends message and then waits for the printer to send an Ok message back
     // pub async fn send_checked(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
-    pub async fn send_wait_for_ok(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+    // pub async fn send_wait_for_ok(&mut self, message: MoonMSG) -> Result<(), SendError<MoonMSG>> {
+    // pub async fn send_wait_for_ok(&mut self, message: MoonRequest) -> Result<(), SendError<MoonResponse>> {
+    // pub async fn send_wait_for_ok(&mut self, message: MoonRequest) -> Result<(), MoonSendError<MoonRequest>> {
+    pub async fn send_wait_for_ok(&mut self, message: MoonRequest) -> Result<(), Box<dyn std::error::Error>> {
         // let this_id = 3243;
         // Should probably keep a vector of ids that have already been used so that
         // we can check against it for collisions. Would incure a lot of performance cost
         // especially in some situations where many commands are sent to the printer in a short amount of time.
-        let this_id = rand::random();
-        let msg = message.set_id(this_id);
-        self.send(msg).await?;
+        // let this_id = rand::random();
+        // let msg = message.set_id(this_id);
+        let this_id = message.id;
+        self.send(message).await?;
         loop {
             match self.recv().await {
                 Some(msg) => {
                     match msg {
-                        MoonMSG::MoonResult { id, result, .. } => {
+                        // MoonMSG::MoonResult { id, result, .. } => {
+                        MoonResponse::MoonResult { id, result, .. } => {
                             if id == this_id {
                                 match result {
                                     MoonResultData::Ok(..) => {
@@ -307,52 +342,86 @@ impl MoonConnection {
             }
         }
     }
-    pub async fn send_listen(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
+    // pub async fn send_listen(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
+    // pub async fn send_listen(&mut self, message: MoonRequest) -> Result<MoonResponse, SendError<MoonResponse>> {
+    // pub async fn send_listen(&mut self, message: MoonRequest) -> Result<MoonResponse, MoonSendError<MoonRequest>> {
+    pub async fn send_listen(&mut self, message: MoonRequest) -> Result<MoonResponse, Box<dyn std::error::Error>> {
         // let this_id = message.id().expect("Message must have an ID");
-        let this_id = message.id().unwrap_or(rand::random());
+        // let this_id = message.id().unwrap_or(rand::random());
+        let this_id = message.id;
         self.send(message).await?;
+        // match self.send(message).await {
+        //     Ok(()) => {},
+        //     Err(e) => Err(format!(""))
+        // }
         loop {
             match self.recv().await {
-                Some(msg) => {
-                    match msg.id() {
-                        Some(id) => {
+                Some(res) => {
+                    match res {
+                        MoonResponse::MoonResult { result, id, .. } => {
                             if id == this_id {
-                                return Ok(msg)
+                                // return Ok(res.clone());
+                                return Ok(MoonResponse::MoonResult { jsonrpc: crate::JsonRpcVersion::V2_0, result, id });
                             }
                         },
-                        None => continue,
+                        MoonResponse::MoonError { error, id, .. } => {
+                            match id {
+                                Some(id) => {
+                                    if id == this_id {
+                                        // return Ok(res.clone())
+                                        return Ok(MoonResponse::MoonError { jsonrpc: crate::JsonRpcVersion::V2_0, error, id: Some(id) });
+                                    }
+                                },
+                                None => continue,
+                            }
+                        },
+                        MoonResponse::Notification { .. } => {},
                     }
+                    // match msg.id {
+                    //     Some(id) => {
+                    //         if id == this_id {
+                    //             return Ok(msg)
+                    //         }
+                    //     },
+                    //     None => continue,
+                    // }
                 },
                 None => continue,
             }
         }
     }
-    pub async fn send_listen_debug(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
-        let this_id = message.id().unwrap_or(rand::random());
-        println!("Using message id: {this_id}");
-        self.send(message).await?;
-        loop {
-            match self.recv().await {
-                Some(msg) => {
-                    match msg.id() {
-                        Some(id) => {
-                            if id == this_id {
-                                println!("Received: \n {msg:?}");
-                                return Ok(msg)
-                            }
-                        },
-                        None => continue,
-                    }
-                },
-                None => continue,
-            }
-        }
-    }
+    // pub async fn send_listen_debug(&mut self, message: MoonMSG) -> Result<MoonMSG, SendError<MoonMSG>> {
+    // pub async fn send_listen_debug(&mut self, message: MoonRequest) -> Result<MoonResponse, MoonSendError<MoonRequest>> {
+    //     // let this_id = message.id().unwrap_or(rand::random());
+    //     let this_id = message.id;
+    //     println!("Using message id: {this_id}");
+    //     self.send(message).await?;
+    //     loop {
+    //         match self.recv().await {
+    //             Some(msg) => {
+    //                 match msg.id {
+    //                     Some(id) => {
+    //                         if id == this_id {
+    //                             println!("Received: \n {msg:?}");
+    //                             return Ok(msg)
+    //                         }
+    //                     },
+    //                     None => continue,
+    //                 }
+    //             },
+    //             None => continue,
+    //         }
+    //     }
+    // }
     pub async fn get_printer_info(&mut self, message_id: Option<u32>) -> Result<PrinterInfoResponse, Box<dyn std::error::Error>> {
-        let message = MoonMSG::new(MoonMethod::PrinterInfo, None, message_id);
-        // let result = self.send_listen(message).await?;
-        match self.send_listen(message).await? {
-            MoonMSG::MoonResult { result, id, .. } => {
+        // let message = MoonMSG::new(MoonMethod::PrinterInfo, None, message_id);
+        let message = MoonRequest::new(MoonMethod::PrinterInfo, None);
+        let res = self.send_listen(message).await?;
+        // match self.send_listen(message).await {
+            // Ok(res) => {
+                // MoonMSG::MoonResult { result, id, .. } => {
+        match res {
+            MoonResponse::MoonResult { result, id, .. } => {
                 match message_id {
                     Some(msg_id) => {
                         if msg_id != id {
@@ -370,21 +439,34 @@ impl MoonConnection {
                     _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
                 }
             },
-            _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
+            _ => Err("Error in `MoonConnection::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into()),
         }
+            // },
+        //     Err(e) => Err(format!("Error getting "))
+        // }
     }
     pub async fn get_homed_axes(&mut self) -> Result<String, Box<dyn std::error::Error>> {
         let param = MoonParam::PrinterObjectsQuery{
             objects: PrinterObject::Toolhead(Some(vec!["homed_axes".to_string()])),
+            // objects: PrinterObjectStatus {
+            //     // toolhead: Toolhead(Some(vec!["homed_axes".to_string()])),
+            //     toolhead: Some(Toolhead {
+            //         homed_axes: Some("homed_axes".to_string()),
+            //         ..Default::default()
+            //     }),
+            //     ..Default::default()
+            // }
         };
-        let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
+        // let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413));
+        let msg = MoonRequest::new(MoonMethod::PrinterObjectsQuery, Some(param));
         // println!("Sending: {}", serde_json::to_string_pretty(&msg).unwrap());
         // let response = self.send_listen(msg).await?;
 
         match self.send_listen(msg).await? {
-            MoonMSG::MoonResult { result, .. } => {
+            // MoonMSG::MoonResult { result, .. } => {
+            MoonResponse::MoonResult { result, .. } => {
                 match result {
-                    MoonResultData::QueryPrinterObjectsResponse(res) => {
+                    MoonResultData::PrinterObjectsQueryResponse(res) => {
                         match res.status.toolhead {
                             Some(toolhead) => {
                                 match toolhead.homed_axes {
@@ -430,12 +512,19 @@ impl MoonConnection {
     pub async fn is_z_tilt_applied(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
         let param = MoonParam::PrinterObjectsQuery {
             objects: PrinterObject::ZTilt(None), 
+            // objects: PrinterObjectStatus {
+            //     z_tilt: Some(ZTilt {
+            //         applied: trueNone)),
+            //     ..Default::default()
+            // } 
         };
-        let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413)); // Example ID
+        // let msg = MoonMSG::new(MoonMethod::PrinterObjectsQuery, Some(param), Some(1413)); // Example ID
+        let msg = MoonRequest::new(MoonMethod::PrinterObjectsQuery, Some(param));
 
         match self.send_listen(msg).await? {
-            MoonMSG::MoonResult { result, .. } => match result {
-                MoonResultData::QueryPrinterObjectsResponse(res) => {
+            // MoonMSG::MoonResult { result, .. } => match result {
+            MoonResponse::MoonResult { result, .. } => match result {
+                MoonResultData::PrinterObjectsQueryResponse(res) => {
                     match res.status.z_tilt {
                         Some(z_tilt) => Ok(z_tilt.applied),
                         None => Err("Error: 'z_tilt' object not found in response".into()),

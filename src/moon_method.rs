@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum MoonMethod {
     Empty,
@@ -17,8 +18,11 @@ pub enum MoonMethod {
     ServerRestart,
     #[serde(rename="printer.query_endstops.status")]
     PrinterQueryEndstopsStatus,
-    // #[serde(rename="server.websocket.id")]
-    // WebsocketID,
+    /// `server.websocket.id` is depreciated by moonraker
+    #[deprecated = "Depreciated by moonraker. Please use the `ServerConnectionIdentify` method/endpoint to retrieve the Websocket's UID"]
+    // #[allow(deprecated)]
+    #[serde(rename="server.websocket.id")]
+    WebsocketID,
     #[serde(rename="printer.info")]
     PrinterInfo,
     #[serde(rename="printer.emergency_stop")]
@@ -228,4 +232,6 @@ pub enum MoonMethod {
     NotifyAnnouncementWake,
     #[serde(rename="notify_agent_event")]
     NotifyAgentEvent,
+    #[serde(untagged)]
+    Other(String),
 }

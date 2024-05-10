@@ -1,9 +1,18 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+
+// use crate::moon_result::PrinterObjectStatus;
+// use crate::PrinterObject;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum MoonParam {
     None,
+    // TemperatureStoreParams(TemperatureStoreParams),
+    // IncludeMonitors(bool),
+    TemperatureStoreParams {
+        include_monitors: bool,
+    },
     ServerConnectionIdentifyParams {
         client_name: String,
         version: String,
@@ -17,19 +26,9 @@ pub enum MoonParam {
     PrinterObjectsSubscribe {
         objects: PrinterObject,
     },
-    NotifyProcStatUpdate {
-        moonraker_stats: MoonrakerStats,
-        cpu_temp: f64,
-        network: Network,
-        system_cpu_usage: SystemCpuUsage,
-        system_memory: SystemMemory,
-        websocket_connections: u64,
-    },
-    NotifyCpuThrottled {
-        bits: u64,
-        flags: Vec<String>,
-    },
-    NotifyGcodeResponse( String ),
+    // NotifyProcStatUpdate(Vec<NotifyProcStatUpdateParam>),
+    // NotifyCpuThrottled(Vec<CpuThrottledState>),
+    // NotifyGcodeResponse( Vec<String> ),
     GcodeScript {
         script: String,
     },
@@ -48,6 +47,12 @@ pub enum MoonParam {
         event: Event,
         aux: String,
     },
+    // VecParams(Vec<MoonParam>),
+    ParamVec(Vec<MoonParam>),
+    // JsonValue(serde_json::Value),
+    MachineProcStats(MachineProcStats),
+    #[serde(untagged)]
+    Other(serde_json::Value),
 }
 
 impl MoonParam {
@@ -55,6 +60,30 @@ impl MoonParam {
         serde_json::from_str(json)
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MachineProcStats {
+    pub moonraker_stats: Vec<MoonrakerStats>,
+    pub throttled_state: CpuThrottledState,
+    pub cpu_temp: Option<f64>,
+    pub network: HashMap<String, Network>,
+    // pub system_cpu_usage: SystemCpuUsage,
+    pub system_cpu_usage: HashMap<String, f64>,
+    // pub system_memory: SystemMemory,
+    pub system_uptime: Option<f64>,
+    pub websocket_connections: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CpuThrottledState {
+    pub bits: u64,
+    pub flags: Vec<String>,
+}
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct TemperatureStoreParams {
+//     include_monitors: bool,
+// }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PrinterObject {

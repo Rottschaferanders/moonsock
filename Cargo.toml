@@ -17,3 +17,4 @@ tokio-tungstenite = { version = "0.18.0", features = ["native-tls"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 url = "2.2.2"
 rand = "0.8.5"
+maplit = "1.0.2"
