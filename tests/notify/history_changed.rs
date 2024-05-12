@@ -29,7 +29,7 @@ fn test_deserialize_notify_history_changed() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyHistoryChanged,
         params: Some(NotificationParam::HistoryChanged(vec![
             HistoryChangedParam {
@@ -57,7 +57,7 @@ fn test_deserialize_notify_history_changed() {
 #[test]
 fn test_serialize_notify_history_changed() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyHistoryChanged,
         params: Some(NotificationParam::HistoryChanged(vec![
             HistoryChangedParam {

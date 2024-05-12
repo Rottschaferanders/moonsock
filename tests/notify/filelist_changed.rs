@@ -29,7 +29,7 @@ fn test_parse_notify_filelist_changed() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyFilelistChanged,
         params: Some(
             NotificationParam::FilelistChanged(vec![FilelistChangedParam {

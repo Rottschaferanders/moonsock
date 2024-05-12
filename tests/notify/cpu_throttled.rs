@@ -14,7 +14,7 @@ fn test_parse_notify_cpu_throttled() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyCpuThrottled,
         params: Some(
             NotificationParam::CpuThrottled(vec![CpuThrottledState {

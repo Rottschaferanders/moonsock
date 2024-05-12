@@ -66,7 +66,7 @@ use moonsock::{
 #[test]
 fn test_serialize_notify_status_update() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyStatusUpdate,
         params: Some(NotificationParam::StatusUpdate(
             PrinterObjectStatus {
@@ -149,7 +149,7 @@ fn test_deserialize_notify_status_update() {
     }"##;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyStatusUpdate,
         params: Some(NotificationParam::StatusUpdate(
             PrinterObjectStatus {

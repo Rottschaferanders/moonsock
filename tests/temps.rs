@@ -103,7 +103,7 @@ fn temp_store_serialize() {
     temp_store.add_to_hashmap(HeaterNames::HeaterBed, bed);
     // let msg_two = MoonMSG::new_result(MoonResultData::TemperatureStore(temp_store), 1);
     let msg_two = MoonResponse::MoonResult {
-        jsonrpc: moonsock::JsonRpcVersion::V2_0,
+        jsonrpc: moonsock::JsonRpcVersion::V2,
         result: MoonResultData::TemperatureStore(temp_store),
         id: 1,
     }; 

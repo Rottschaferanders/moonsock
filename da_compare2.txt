@@ -1,48 +1,45 @@
 #[test]
-fn test_deserialize_notify_job_queue_changed() {
-    let json = r#"{
-        "jsonrpc": "2.0",
-        "method": "notify_job_queue_changed",
-        "params": [
-            {
-                "action": "state_changed",
-                "updated_queue": null,
-                "queue_state": "paused"
-            }
-        ]
-    }"#;
-
-    let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
-        method: NotificationMethod::NotifyJobQueueChanged,
-        params: Some(NotificationParam::JobQueueChanged(vec![
-            JobQueueChangedParam {
-                action: JobQueueAction::StateChanged,
-                updated_queue: None,
-                queue_state: "paused".to_string(),
-            },
-        ])),
+fn test_serialize_notify_agent_event() {
+    let message = MoonResponse::Notification {
+        jsonrpc: JsonRpcVersion::V2,
+        method: NotificationMethod::NotifyAgentEvent,
+        params: Some(NotificationParam::AgentEvent(AgentEventParams {
+            agent: "moonagent".to_string(),
+            event: "connected".to_string(),
+            data: Some(serde_json::json!({
+                "name": "moonagent",
+                "version": "0.0.1",
+                "type": "agent",
+                "url": "https://github.com/arksine/moontest"
+            })),
+        })),
     };
 
-    let actual: MoonResponse = serde_json::from_str(json).unwrap();
-    assert_eq!(actual, expected);
+    let expected_json = r#"{"jsonrpc":"2.0","method":"notify_agent_event","params":[{"agent":"moonagent","event":"connected","data":{"name":"moonagent","version":"0.0.1","type":"agent","url":"https://github.com/arksine/moontest"}}]}"#;
+    let actual_json = serde_json::to_string(&message).unwrap();
+
+    assert_eq!(expected_json, actual_json);
 }
 
 #[test]
-fn test_serialize_notify_job_queue_changed() {
-    let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
-        method: NotificationMethod::NotifyJobQueueChanged,
-        params: Some(NotificationParam::JobQueueChanged(vec![
-            JobQueueChangedParam {
-                action: JobQueueAction::StateChanged,
-                updated_queue: None,
-                queue_state: "paused".to_string(),
-            },
-        ])),
+fn test_deserialize_notify_agent_event() {
+    let json = r#"{"jsonrpc":"2.0","method":"notify_agent_event","params":[{"agent":"moonagent","event":"connected","data":{"name":"moonagent","version":"0.0.1","type":"agent","url":"https://github.com/arksine/moontest"}}]}"#;
+    let expected_message = MoonResponse::Notification {
+        jsonrpc: JsonRpcVersion::V2,
+        method: NotificationMethod::NotifyAgentEvent,
+        params: Some(NotificationParam::AgentEvent(AgentEventParams {
+            agent: "moonagent".to_string(),
+            event: "connected".to_string(),
+            data: Some(serde_json::json!({
+                "name": "moonagent",
+                "version": "0.0.1",
+                "type": "agent",
+                "url": "https://github.com/arksine/moontest"
+            })),
+        })),
     };
 
-    let expected = r#"{"jsonrpc":"2.0","method":"notify_job_queue_changed","params":[{"action":"state_changed","updated_queue":null,"queue_state":"paused"}]}"#;
-    let actual = serde_json::to_string(&data).unwrap();
-    assert_eq!(actual, expected);
+    let actual_message: MoonResponse = serde_json::from_str(json).unwrap();
+
+    assert_eq!(expected_message, actual_message);
 }

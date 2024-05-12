@@ -17,7 +17,7 @@ fn test_deserialize_notify_user_logged_outs() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyUserLoggedOut,
         params: Some(NotificationParam::User(vec![
             UserParam {
@@ -33,7 +33,7 @@ fn test_deserialize_notify_user_logged_outs() {
 #[test]
 fn test_serialize_notify_user_logged_out() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyUserLoggedOut,
         params: Some(NotificationParam::User(vec![
             UserParam {

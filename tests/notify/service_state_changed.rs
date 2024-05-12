@@ -20,7 +20,7 @@ fn test_deserialize_notify_service_state_changed() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyServiceStateChanged,
         params: Some(NotificationParam::ServiceStateChanged(vec![
             ServiceStateChangedParam {
@@ -39,7 +39,7 @@ fn test_deserialize_notify_service_state_changed() {
 #[test]
 fn test_serialize_notify_service_state_changed() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyServiceStateChanged,
         params: Some(NotificationParam::ServiceStateChanged(vec![
             ServiceStateChangedParam {

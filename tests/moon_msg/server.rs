@@ -72,7 +72,7 @@ fn test_serialize_server_info() {
     //     None,
     // );
     let moon_msg = MoonRequest {
-        jsonrpc: moonsock::JsonRpcVersion::V2_0,
+        jsonrpc: moonsock::JsonRpcVersion::V2,
         method: MoonMethod::ServerInfo,
         params: None,
         id: 9546,

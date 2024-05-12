@@ -140,7 +140,7 @@ fn test_parse_notify_update_refreshed() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyUpdateRefreshed,
         // params: Some(vec![
         params: Some(

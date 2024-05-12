@@ -32,4 +32,5 @@ pub enum MoonResultData {
     PrinterInfoResponse(PrinterInfoResponse),
     PrinterObjectsListResponse(PrinterObjectsListResponse),
     PrinterObjectsQueryResponse(PrinterObjectsQueryResponse),
+    None
 }

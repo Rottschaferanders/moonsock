@@ -8,7 +8,7 @@ fn test_deserialize_notify_klippy_disconnected() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyKlippyDisconnected,
         params: None,
     };
@@ -20,7 +20,7 @@ fn test_deserialize_notify_klippy_disconnected() {
 #[test]
 fn test_serialize_notify_klippy_disconnected() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyKlippyDisconnected,
         params: None,
     };

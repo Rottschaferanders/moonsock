@@ -8,7 +8,7 @@ fn test_deserialize_notify_klippy_shutdown() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyKlippyShutdown,
         params: None,
     };
@@ -20,7 +20,7 @@ fn test_deserialize_notify_klippy_shutdown() {
 #[test]
 fn test_serialize_notify_klippy_shutdown() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyKlippyShutdown,
         params: None,
     };

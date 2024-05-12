@@ -10,6 +10,7 @@ pub mod moon_method;
 mod moon_param;
 mod notification;
 pub use notification::*;
+pub mod utils;
 
 // Exports:
 pub use connection::MoonConnection;
@@ -23,12 +24,15 @@ use response::{
     // GcodeType,
 };
 
+pub mod fast_ws_stuff;
+pub mod fast_ws_connection;
+
 /// ---------------------- Request Serializing ------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum JsonRpcVersion {
     #[serde(rename = "2.0")]
-    V2_0
+    V2
 }
 
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -135,6 +139,26 @@ pub enum MoonResponse {
     },
 }
 
+// impl Default for MoonResponse {
+//     fn default() -> Self {
+//         Self {
+//             jsonrpc: JsonRpcVersion::V2,
+//             method: NotificationMethod::Other(""),
+//             params: None,
+//         }
+//     }
+// }
+
+// impl Default for MoonResponse {
+//     fn default() -> Self {
+//         Self {
+//             jsonrpc: JsonRpcVersion::V2,
+//             result: MoonResultData::None,
+//             id: 0,
+//         }
+//     }
+// }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MoonErrorContent {
     pub code: u32,
@@ -199,28 +223,28 @@ impl MoonRequest {
     pub fn new(method: MoonMethod, params: Option<MoonParam>) -> Self {
         let id = rand::random();
         Self {
-            jsonrpc: JsonRpcVersion::V2_0,
+            jsonrpc: JsonRpcVersion::V2,
             method,
             params,
             id
         }
         // match (params, id) {
-        //     (None, None) => Self::Method { jsonrpc: JsonRpcVersion::V2_0, method },
-        //     (None, Some(id)) => Self::MethodID { jsonrpc: JsonRpcVersion::V2_0, method, id },
-        //     (Some(params), None) => Self::MethodParam { jsonrpc: JsonRpcVersion::V2_0, method, params },
-        //     (Some(params), Some(id)) => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method, params, id },
+        //     (None, None) => Self::Method { jsonrpc: JsonRpcVersion::V2, method },
+        //     (None, Some(id)) => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method, id },
+        //     (Some(params), None) => Self::MethodParam { jsonrpc: JsonRpcVersion::V2, method, params },
+        //     (Some(params), Some(id)) => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method, params, id },
         // }
     }
     // pub fn new_error(error: MoonErrorContent, id: u32) -> Self {
     //     Self::MoonError {
-    //         jsonrpc: JsonRpcVersion::V2_0,
+    //         jsonrpc: JsonRpcVersion::V2,
     //         error,
     //         id,
     //     }
     // }
     // pub fn new_result(result: moon_result::MoonResultData, id: u32) -> Self {
     //     Self::MoonResult {
-    //         jsonrpc: JsonRpcVersion::V2_0,
+    //         jsonrpc: JsonRpcVersion::V2,
     //         result,
     //         id,
     //     }
@@ -258,9 +282,9 @@ impl MoonRequest {
     //         Self::MethodParamID { method, params, .. } => {
     //             Self::new(method.clone(), Some(params.clone()), Some(id))
     //         },
-    //         Self::MethodParam { method, params, .. } => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id },
-    //         Self::MethodID { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), id },
-    //         Self::Method { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), id},
+    //         Self::MethodParam { method, params, .. } => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id },
+    //         Self::MethodID { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id },
+    //         Self::Method { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id},
     //         Self::Empty => {
     //             Self::new(MoonMethod::Empty, None, Some(id))
     //         },
@@ -288,22 +312,22 @@ impl MoonRequest {
 //     /// Assuming you use unique ids for every message you send, a response with a match id is the response to the request with that id.
 //     pub fn new(method: MoonMethod, params: Option<MoonParam>, id: Option<u32>) -> MoonMSG {
 //         match (params, id) {
-//             (None, None) => MoonMSG::Method { jsonrpc: JsonRpcVersion::V2_0, method },
-//             (None, Some(id)) => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2_0, method, id },
-//             (Some(params), None) => MoonMSG::MethodParam { jsonrpc: JsonRpcVersion::V2_0, method, params },
-//             (Some(params), Some(id)) => MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method, params, id },
+//             (None, None) => MoonMSG::Method { jsonrpc: JsonRpcVersion::V2, method },
+//             (None, Some(id)) => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2, method, id },
+//             (Some(params), None) => MoonMSG::MethodParam { jsonrpc: JsonRpcVersion::V2, method, params },
+//             (Some(params), Some(id)) => MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2, method, params, id },
 //         }
 //     }
 //     pub fn new_error(error: MoonErrorContent, id: u32) -> MoonMSG {
 //         MoonMSG::MoonError {
-//             jsonrpc: JsonRpcVersion::V2_0,
+//             jsonrpc: JsonRpcVersion::V2,
 //             error,
 //             id,
 //         }
 //     }
 //     pub fn new_result(result: moon_result::MoonResultData, id: u32) -> MoonMSG {
 //         MoonMSG::MoonResult {
-//             jsonrpc: JsonRpcVersion::V2_0,
+//             jsonrpc: JsonRpcVersion::V2,
 //             result,
 //             id,
 //         }
@@ -499,41 +523,41 @@ impl MoonRequest {
 //         match self {
 //             MoonMSG::MoonResult { result, .. } => {
 //                 MoonMSG::new_result(result.clone(), id)
-//                 // MoonMSG::MoonResult { jsonrpc: JsonRpcVersion::V2_0, result: result.clone(), id }
+//                 // MoonMSG::MoonResult { jsonrpc: JsonRpcVersion::V2, result: result.clone(), id }
 //             },
 //             MoonMSG::MoonError { error, .. } => {
 //                 MoonMSG::new_error(error.clone(), id)
-//                 // MoonMSG::MoonError { jsonrpc: JsonRpcVersion::V2_0, error.clone(), id }
+//                 // MoonMSG::MoonError { jsonrpc: JsonRpcVersion::V2, error.clone(), id }
 //             },
 //             MoonMSG::MethodParamID { method, params, .. } => {
 //                 MoonMSG::new(method.clone(), Some(params.clone()), Some(id))
-//                 // MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id: id }
+//                 // MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id: id }
 //             },
 //             // MoonMSG::MethodParamVecID { method, params, .. } => {
 //             //     // MoonMSG::new(method.clone(), Some(params.clone()), Some(id))
-//             //     MoonMSG::MethodParamVecID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::MethodParamVecID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
-//             MoonMSG::MethodParam { method, params, .. } => MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id },
-//             // MoonMSG::MethodParamVec { method, params, .. } => MoonMSG::MethodParamVecID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone() , id },
-//             MoonMSG::MethodID { method, .. } => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), id },
-//             MoonMSG::Method { method, .. } => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), id},
+//             MoonMSG::MethodParam { method, params, .. } => MoonMSG::MethodParamID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id },
+//             // MoonMSG::MethodParamVec { method, params, .. } => MoonMSG::MethodParamVecID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone() , id },
+//             MoonMSG::MethodID { method, .. } => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id },
+//             MoonMSG::Method { method, .. } => MoonMSG::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id},
 //             // MoonMSG::CouldNotParseParams { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseParamsID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseParamsID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             // MoonMSG::CouldNotParseParamsID { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseParamsID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseParamsID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             // MoonMSG::CouldNotParseMethod { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseMethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseMethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             // MoonMSG::CouldNotParseMethodID { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseMethodID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseMethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             // MoonMSG::CouldNotParseMethodParams { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseMethodParamsID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseMethodParamsID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             // MoonMSG::CouldNotParseMethodParamsID { method, params, .. } => {
-//             //     MoonMSG::CouldNotParseMethodParamsID { jsonrpc: JsonRpcVersion::V2_0, method: method.clone(), params: params.clone(), id }
+//             //     MoonMSG::CouldNotParseMethodParamsID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id }
 //             // },
 //             MoonMSG::Empty => {
 //                 MoonMSG::new(MoonMethod::Empty, None, Some(id))

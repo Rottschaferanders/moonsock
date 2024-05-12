@@ -7,7 +7,7 @@ use moonsock::{
 fn result_ok() {
     // let message_struct = MoonMSG::MoonResult {
     let message_struct = MoonResponse::MoonResult {
-        jsonrpc: moonsock::JsonRpcVersion::V2_0,
+        jsonrpc: moonsock::JsonRpcVersion::V2,
         result: MoonResultData::Ok(MoonOk::Ok),
         id: 1340,
     };

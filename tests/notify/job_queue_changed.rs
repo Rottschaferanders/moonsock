@@ -19,7 +19,7 @@ use moonsock::{
 //     }"#;
 
 //     let expected = MoonResponse::Notification {
-//         jsonrpc: JsonRpcVersion::V2_0,
+//         jsonrpc: JsonRpcVersion::V2,
 //         method: NotificationMethod::NotifyJobQueueChanged,
 //         params: Some(NotificationParam::JobQueueChanged(vec![
 //             JobQueueChangedParam {
@@ -37,7 +37,7 @@ use moonsock::{
 // #[test]
 // fn test_serialize_notify_job_queue_changed() {
 //     let data = MoonResponse::Notification {
-//         jsonrpc: JsonRpcVersion::V2_0,
+//         jsonrpc: JsonRpcVersion::V2,
 //         method: NotificationMethod::NotifyJobQueueChanged,
 //         params: Some(NotificationParam::JobQueueChanged(vec![
 //             JobQueueChangedParam {
@@ -69,7 +69,7 @@ fn test_deserialize_notify_job_queue_changed() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyJobQueueChanged,
         params: Some(NotificationParam::JobQueueChanged(vec![
             JobQueueChangedParam {
@@ -87,7 +87,7 @@ fn test_deserialize_notify_job_queue_changed() {
 #[test]
 fn test_serialize_notify_job_queue_changed() {
     let data = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyJobQueueChanged,
         params: Some(NotificationParam::JobQueueChanged(vec![
             JobQueueChangedParam {

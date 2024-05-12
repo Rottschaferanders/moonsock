@@ -16,7 +16,7 @@ fn test_parse_notify_update_response() {
     }"#;
 
     let expected = MoonResponse::Notification {
-        jsonrpc: JsonRpcVersion::V2_0,
+        jsonrpc: JsonRpcVersion::V2,
         method: NotificationMethod::NotifyUpdateResponse,
         params: Some(
             NotificationParam::UpdateResponse(vec![UpdateResponseParam {

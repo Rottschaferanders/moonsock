@@ -5,10 +5,20 @@ use crate::{
     response::{
         PrinterObjectStatus,
         HistoryChangedParam,
+        // AnnouncementParams,
+        AnnouncementUpdateParam, 
+        EntryId, WebcamsChangedParams,
+        ActiveSpoolSetParams, SpoolmanStatusChangedParams,
+        // AnnouncementEntryId,
+        // AnnouncementDismissedParam, AnnouncementWakeParam,
     },
     // NotifyProcStatUpdateParam,
     // MachineProcStats,
     MoonrakerStats,
+    // utils::deserialize_single_item_array,
+    // utils::serde_button_event,
+    // utils::button_event_param_serde,
+    utils::single_element_array,
     // Network,
 };
 
@@ -46,6 +56,24 @@ pub enum NotificationMethod {
     NotifyServiceStateChanged,
     #[serde(rename = "notify_job_queue_changed")]
     NotifyJobQueueChanged,
+    #[serde(rename = "notify_button_event")]
+    NotifyButtonEvent,
+    #[serde(rename = "notify_announcement_update")]
+    NotifyAnnouncementUpdate,
+    #[serde(rename = "notify_announcement_dismissed")]
+    NotifyAnnouncementDismissed,
+    #[serde(rename = "notify_announcement_wake")]
+    NotifyAnnouncementWake,
+    #[serde(rename = "notify_sudo_alert")]
+    NotifySudoAlert,
+    #[serde(rename = "notify_webcams_changed")]
+    NotifyWebcamsChanged,
+    #[serde(rename = "notify_active_spool_set")]
+    NotifyActiveSpoolSet,
+    #[serde(rename = "notify_spoolman_status_changed")]
+    NotifySpoolmanStatusChanged,
+    #[serde(rename = "notify_agent_event")]
+    NotifyAgentEvent,
 }
 
 // #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -69,29 +97,34 @@ pub enum NotificationMethod {
 pub enum NotificationParam {
     String(Vec<String>),
     Float(Vec<f64>),
-    // StatusUpdate(PrinterObjectStatus),
     StatusUpdate(PrinterObjectStatus, f64),
-    // Status(MachineProcStats),
     FilelistChanged(Vec<FilelistChangedParam>),
     UpdateResponse(Vec<UpdateResponseParam>),
     UpdateRefreshed(Vec<UpdateRefreshedParam>),
     CpuThrottled(Vec<crate::CpuThrottledState>),
     ProcStatUpdate(Vec<NotifyProcStatUpdateParam>),
     HistoryChanged(Vec<HistoryChangedParam>),
-    /// Used for `notify_user_created`, `notify_user_deleted`, and `notify_user_logged_out`
+    /// `params` field for `notify_user_created`, `notify_user_deleted`, and `notify_user_logged_out`
     User(Vec<UserParam>),
     ServiceStateChanged(Vec<ServiceStateChangedParam>),
     JobQueueChanged(Vec<JobQueueChangedParam>),
+    #[serde(with = "single_element_array")]
+    ButtonEvent(ButtonEventParam),
+    #[serde(with = "single_element_array")]
+    AnnouncementUpdate(AnnouncementUpdateParam),
+    #[serde(with = "single_element_array")]
+    AnnouncementEntryId(EntryId),
+    #[serde(with = "single_element_array")]
+    SudoAlert(SudoAlertParams),
+    #[serde(with = "single_element_array")]
+    WebcamsChanged(WebcamsChangedParams),
+    #[serde(with = "single_element_array")]
+    ActiveSpoolSet(ActiveSpoolSetParams),
+    #[serde(with = "single_element_array")]
+    SpoolmanStatusChanged(SpoolmanStatusChangedParams),
+    #[serde(with = "single_element_array")]
+    AgentEvent(AgentEventParams),
 }
-
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct StatusUpdateWithTime {
-//     pub printer_object_status: PrinterObjectStatus,
-//     pub event_time: f64,
-// }
-
-// pub struct NotifyStatusUpdateParam(PrinterObjectsStatus, f64);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NotifyProcStatUpdateParam {
@@ -262,13 +295,6 @@ pub struct ServiceStateChangedParam {
     pub services: HashMap<String, ServiceState>,
 }
 
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct JobQueueChangedParam {
-//     pub action: String,
-//     pub updated_queue: Option<Vec<String>>,
-//     pub queue_state: String,
-// }
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JobQueueChangedParam {
     pub action: JobQueueAction,
@@ -286,4 +312,34 @@ pub enum JobQueueAction {
     JobsRemoved,
     #[serde(rename = "job_loaded")]
     JobLoaded,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ButtonEventParam {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub button_type: String,
+    pub event: ButtonEventDetails,
+    pub aux: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ButtonEventDetails {
+    pub elapsed_time: f64,
+    pub received_time: f64,
+    pub render_time: f64,
+    pub pressed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SudoAlertParams {
+    pub sudo_requested: bool,
+    pub sudo_messages: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AgentEventParams {
+    pub agent: String,
+    pub event: String,
+    pub data: Option<serde_json::Value>,
 }

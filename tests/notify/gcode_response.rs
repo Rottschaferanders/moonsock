@@ -23,13 +23,13 @@ fn test_parse_notification_gcode_response() {
 #[test]
 fn notify_gcode_response() {
     // let msg_struct = MoonMSG::MethodParamVec {
-    //     jsonrpc: moonsock::JsonRpcVersion::V2_0,
+    //     jsonrpc: moonsock::JsonRpcVersion::V2,
     //     method: MoonMethod::NotifyGcodeResponse,
     //     params: vec![MoonParam::NotifyGcodeResponse("!! Must home axis first: 160.200 210.000 50.022 [7013.719]".to_string())],
     // };
     // let msg_struct = MoonMSG::MethodParam {
     let msg_struct = MoonResponse::Notification {
-        jsonrpc: moonsock::JsonRpcVersion::V2_0,
+        jsonrpc: moonsock::JsonRpcVersion::V2,
         method: moonsock::NotificationMethod::NotifyGcodeResponse,
         // params: vec![MoonParam::NotifyGcodeResponse("!! Must home axis first: 160.200 210.000 50.022 [7013.719]".to_string())],
         // params: Some(vec![NotificationParam::String("!! Must home axis first: 160.200 210.000 50.022 [7013.719]".to_string())]),
