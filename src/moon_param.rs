@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 // use crate::moon_result::PrinterObjectStatus;
@@ -17,8 +17,12 @@ pub enum MoonParam {
         client_name: String,
         version: String,
         #[serde(rename = "type")]
-        c_type: String,
+        client_type: String,
         url: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        access_token: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        api_key: Option<String>,
     },
     PrinterObjectsQuery {
         objects: PrinterObject,
@@ -50,7 +54,7 @@ pub enum MoonParam {
     // VecParams(Vec<MoonParam>),
     ParamVec(Vec<MoonParam>),
     // JsonValue(serde_json::Value),
-    MachineProcStats(MachineProcStats),
+    // MachineProcStats(MachineProcStats),
     #[serde(untagged)]
     Other(serde_json::Value),
 }
@@ -62,30 +66,6 @@ impl MoonParam {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct MachineProcStats {
-    pub moonraker_stats: Vec<MoonrakerStats>,
-    pub throttled_state: CpuThrottledState,
-    pub cpu_temp: Option<f64>,
-    pub network: HashMap<String, Network>,
-    // pub system_cpu_usage: SystemCpuUsage,
-    pub system_cpu_usage: HashMap<String, f64>,
-    // pub system_memory: SystemMemory,
-    pub system_uptime: Option<f64>,
-    pub websocket_connections: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct CpuThrottledState {
-    pub bits: u64,
-    pub flags: Vec<String>,
-}
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct TemperatureStoreParams {
-//     include_monitors: bool,
-// }
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PrinterObject {
     #[serde(rename = "gcode_move")]
     GcodeMove(Option<Vec<String>>),
@@ -93,50 +73,6 @@ pub enum PrinterObject {
     Toolhead(Option<Vec<String>>),
     #[serde(rename = "z_tilt")]
     ZTilt(Option<Vec<String>>),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct MoonrakerStats {
-    pub time: f64,
-    pub cpu_usage: f64,
-    pub memory: u64,
-    pub mem_units: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Network {
-    pub lo: NetworkData,
-    pub eth0: NetworkData,
-    pub wlan0: NetworkData,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct NetworkData {
-    pub rx_bytes: u64,
-    pub tx_bytes: u64,
-    pub rx_packets: u64,
-    pub tx_packets: u64,
-    pub rx_errs: u64,
-    pub tx_errs: u64,
-    pub rx_drop: u64,
-    pub tx_drop: u64,
-    pub bandwidth: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SystemCpuUsage {
-    pub cpu: f64,
-    pub cpu0: f64,
-    pub cpu1: f64,
-    pub cpu2: f64,
-    pub cpu3: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SystemMemory {
-    pub total: u64,
-    pub available: u64,
-    pub used: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -157,3 +93,72 @@ pub struct Event {
     pub render_time: f32,
     pub pressed: bool,
 }
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct MachineProcStats {
+//     pub moonraker_stats: Vec<MoonrakerStats>,
+//     pub throttled_state: CpuThrottledState,
+//     pub cpu_temp: Option<f64>,
+//     pub network: HashMap<String, Network>,
+//     // pub system_cpu_usage: SystemCpuUsage,
+//     pub system_cpu_usage: HashMap<String, f64>,
+//     // pub system_memory: SystemMemory,
+//     pub system_uptime: Option<f64>,
+//     pub websocket_connections: u64,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct CpuThrottledState {
+//     pub bits: u64,
+//     pub flags: Vec<String>,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct TemperatureStoreParams {
+//     include_monitors: bool,
+// }
+
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct MoonrakerStats {
+//     pub time: f64,
+//     pub cpu_usage: f64,
+//     pub memory: u64,
+//     pub mem_units: String,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct Network {
+//     pub lo: NetworkData,
+//     pub eth0: NetworkData,
+//     pub wlan0: NetworkData,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct NetworkData {
+//     pub rx_bytes: u64,
+//     pub tx_bytes: u64,
+//     pub rx_packets: u64,
+//     pub tx_packets: u64,
+//     pub rx_errs: u64,
+//     pub tx_errs: u64,
+//     pub rx_drop: u64,
+//     pub tx_drop: u64,
+//     pub bandwidth: f64,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct SystemCpuUsage {
+//     pub cpu: f64,
+//     pub cpu0: f64,
+//     pub cpu1: f64,
+//     pub cpu2: f64,
+//     pub cpu3: f64,
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct SystemMemory {
+//     pub total: u64,
+//     pub available: u64,
+//     pub used: u64,
+// }
+

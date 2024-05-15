@@ -1,4 +1,8 @@
-use moonsock::{MoonResponse, JsonRpcVersion, NotificationMethod, NotificationParam, CpuThrottledState};
+use moonsock::{
+    MoonResponse, JsonRpcVersion, NotificationMethod, NotificationParam, 
+    // CpuThrottledState
+    response::CpuThrottledState,
+};
 
 #[test]
 fn test_parse_notify_cpu_throttled() {

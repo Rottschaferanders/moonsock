@@ -60,10 +60,11 @@ use hyper_util::rt::TokioIo;
 use http_body_util::Empty;
 use tokio::net::TcpStream;
 use std::future::Future;
+// use std::net::TcpListener;
 use anyhow::Result;
 use url::Url;
 
-use crate::MoonRequest;
+// use crate::MoonRequest;
 
 // async fn connect(hostname: String, port: u16) -> Result<WebSocket<Upgraded>> {
 pub async fn connect(hostname: String, port: u16) -> Result<WebSocket<TokioIo<Upgraded>>> {
@@ -87,11 +88,12 @@ pub async fn connect(hostname: String, port: u16) -> Result<WebSocket<TokioIo<Up
     let addr = format!("{domain}:{port}");
 
     let stream = TcpStream::connect(addr).await.unwrap();
+    // let stream = TcpListener::connect(addr).await.unwrap();
     // let stream = TcpStream::connect(format!("{hostname}:{port}")).await?;
 
-    let server_info_req = MoonRequest::new(crate::MoonMethod::ServerInfo, None);
-    let _msg_id = server_info_req.id.clone();
-    let msg_str = serde_json::to_string(&server_info_req).unwrap();
+    // let server_info_req = MoonRequest::new(crate::MoonMethod::ServerInfo, None);
+    // let _msg_id = server_info_req.id.clone();
+    // let msg_str = serde_json::to_string(&server_info_req).unwrap();
 
     let req = Request::builder()
         .method("GET")
@@ -119,7 +121,8 @@ pub async fn connect(hostname: String, port: u16) -> Result<WebSocket<TokioIo<Up
         // .body(msg_str).unwrap();
 
     let (ws, _) = handshake::client(&SpawnExecutor, req, stream).await.unwrap();
-
+    // let (rx, mut tx) = ws.split(tokio::io::split);
+    // let (rx, mut tx) = ws.into_inner().split();
     println!("Websocket Succesfully connected!");
     Ok(ws)
 }
@@ -129,10 +132,10 @@ struct SpawnExecutor;
 
 impl<Fut> hyper::rt::Executor<Fut> for SpawnExecutor
 where
-  Fut: Future + Send + 'static,
-  Fut::Output: Send + 'static,
+    Fut: Future + Send + 'static,
+    Fut::Output: Send + 'static,
 {
-  fn execute(&self, fut: Fut) {
-    tokio::task::spawn(fut);
-  }
+    fn execute(&self, fut: Fut) {
+        tokio::task::spawn(fut);
+    }
 }

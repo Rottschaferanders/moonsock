@@ -9,12 +9,13 @@ use crate::{
         AnnouncementUpdateParam, 
         EntryId, WebcamsChangedParams,
         ActiveSpoolSetParams, SpoolmanStatusChangedParams,
+        // MoonrakerStats, 
+        CpuThrottledState,
         // AnnouncementEntryId,
         // AnnouncementDismissedParam, AnnouncementWakeParam,
+        NotifyProcStatUpdateParam, FilelistChangedParam,
     },
-    // NotifyProcStatUpdateParam,
     // MachineProcStats,
-    MoonrakerStats,
     // utils::deserialize_single_item_array,
     // utils::serde_button_event,
     // utils::button_event_param_serde,
@@ -101,7 +102,7 @@ pub enum NotificationParam {
     FilelistChanged(Vec<FilelistChangedParam>),
     UpdateResponse(Vec<UpdateResponseParam>),
     UpdateRefreshed(Vec<UpdateRefreshedParam>),
-    CpuThrottled(Vec<crate::CpuThrottledState>),
+    CpuThrottled(Vec<CpuThrottledState>),
     ProcStatUpdate(Vec<NotifyProcStatUpdateParam>),
     HistoryChanged(Vec<HistoryChangedParam>),
     /// `params` field for `notify_user_created`, `notify_user_deleted`, and `notify_user_logged_out`
@@ -126,62 +127,62 @@ pub enum NotificationParam {
     AgentEvent(AgentEventParams),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct NotifyProcStatUpdateParam {
-    pub moonraker_stats: MoonrakerStats,
-    pub cpu_temp: Option<f64>,
-    pub network: HashMap<String, NotifyProcStatUpdateNetworkItem>,
-    pub system_cpu_usage: HashMap<String, f64>,
-    pub websocket_connections: u64,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct NotifyProcStatUpdateParam {
+//     pub moonraker_stats: MoonrakerStats,
+//     pub cpu_temp: Option<f64>,
+//     pub network: HashMap<String, NotifyProcStatUpdateNetworkItem>,
+//     pub system_cpu_usage: HashMap<String, f64>,
+//     pub websocket_connections: u64,
+// }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct NotifyProcStatUpdateNetworkItem {
-    pub rx_bytes: u64,
-    pub tx_bytes: u64,
-    pub bandwidth: f64,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct NotifyProcStatUpdateNetworkItem {
+//     pub rx_bytes: u64,
+//     pub tx_bytes: u64,
+//     pub bandwidth: f64,
+// }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct FilelistChangedParam {
-    pub action: FilelistAction,
-    pub item: FilelistItem,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_item: Option<FilelistItem>,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct FilelistChangedParam {
+//     pub action: FilelistAction,
+//     pub item: FilelistItem,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub source_item: Option<FilelistItem>,
+// }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum FilelistAction {
-    #[serde(rename = "create_file")]
-    CreateFile,
-    #[serde(rename = "create_dir")]
-    CreateDir,
-    #[serde(rename = "delete_file")]
-    DeleteFile,
-    #[serde(rename = "delete_dir")]
-    DeleteDir,
-    #[serde(rename = "move_file")]
-    MoveFile,
-    #[serde(rename = "move_dir")]
-    MoveDir,
-    #[serde(rename = "modify_file")]
-    ModifyFile,
-    #[serde(rename = "root_update")]
-    RootUpdate,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub enum FilelistAction {
+//     #[serde(rename = "create_file")]
+//     CreateFile,
+//     #[serde(rename = "create_dir")]
+//     CreateDir,
+//     #[serde(rename = "delete_file")]
+//     DeleteFile,
+//     #[serde(rename = "delete_dir")]
+//     DeleteDir,
+//     #[serde(rename = "move_file")]
+//     MoveFile,
+//     #[serde(rename = "move_dir")]
+//     MoveDir,
+//     #[serde(rename = "modify_file")]
+//     ModifyFile,
+//     #[serde(rename = "root_update")]
+//     RootUpdate,
+// }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct FilelistItem {
-    pub path: String,
-    pub root: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub modified: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permissions: Option<String>,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct FilelistItem {
+//     pub path: String,
+//     pub root: String,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub size: Option<u64>,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub modified: Option<u64>,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub permissions: Option<String>,
+// }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateResponseParam {

@@ -4,12 +4,12 @@ use serde::{Serialize, Deserialize};
 #[serde(untagged)]
 pub enum TempStoreData {
     TempTgtsPowers {
-        temperatures: Vec<f32>,
+        temperatures: Option<Vec<f32>>,
         targets: Vec<f32>,
         powers: Vec<f32>,
     },
     Temp {
-        temperatures: Vec<f32>,
+        temperatures: Option<Vec<f32>>,
     },
 }
 

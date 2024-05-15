@@ -2,3 +2,6 @@
 /Cargo.lock
 
 .cargo/config.toml
+
+/da_compare1.txt
+/da_compare2.txt

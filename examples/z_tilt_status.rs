@@ -52,7 +52,7 @@
 // }
 
 // use moonsock::{moon_param::{MoonParam, PrinterObject}, moon_result::MoonResultData, MoonConnection, MoonMSG, MoonMethod};
-use moonsock::MoonConnection;
+use moonsock::FastMoonConn;
 use std::env;
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;
@@ -70,9 +70,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_e) => DEFAULT_MOONRAKER_PORT,
     };
 
-    let url = format!("ws://{hostname}:{port}/websocket");
+    // let url = format!("ws://{hostname}:{port}/websocket");
     // let mut connection = MoonConnection::new(url, 1000, 1000).await;
-    let mut connection = MoonConnection::new(url, None, None, false).await;
+    let mut connection = FastMoonConn::new(hostname, port, None, None, false).await;
     
     let is_z_tilt_appled = connection.is_z_tilt_applied().await?;
     if is_z_tilt_appled {

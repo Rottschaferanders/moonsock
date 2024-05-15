@@ -4,7 +4,7 @@ use moonsock::{
     MoonRequest,
 };
 
-mod server;
+// mod server;
 
 #[test]
 fn test_unknown_method() {
