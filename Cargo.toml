@@ -13,6 +13,8 @@ readme = "README.md"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7.11", features = ["codec"] }
+futures = "0.3"
 # tokio-tungstenite = { version = "0.18.0", features = ["native-tls"] }
 tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
@@ -28,6 +30,8 @@ pin-project = { version = "1.0.8", optional = true }
 # futures = "0.3.30"
 
 fastwebsockets = {version = "0.7", features = ["upgrade"] } 
+# spinners = "4.1.1"
+spinoff = "0.8"
 # [dependencies.fastwebsockets]
 # version = "0.7"
 # features = ["upgrade"]

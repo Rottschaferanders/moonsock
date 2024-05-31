@@ -33,6 +33,10 @@ pub enum PrinterState {
     Cancelled,
     #[serde(rename = "shutdown")]
     Shutdown,
+    #[serde(rename = "startup")]
+    Startup,
+    #[serde(rename = "disconnected")]
+    Disconnected,
     #[serde(rename = "error")]
     Error,
 }
@@ -121,7 +125,7 @@ mod tests {
         let hostname = std::env::var("MOONRAKER_HOSTNAME").unwrap_or("localhost".to_string());
         let port = std::env::var("MOONRAKER_PORT").unwrap_or("7125".to_string()).parse::<u16>().unwrap();
         // let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
-        let mut connection = FastMoonConn::new(hostname, port, None, None, false).await;
+        let mut connection = FastMoonConn::new(hostname, port, None, None, false).await.expect("Failed to connect to printer");
         // let status = connection.get_printer_info(Some(1234)).await.unwrap();
         match connection.get_printer_info().await {
             Ok(printer_info) => {

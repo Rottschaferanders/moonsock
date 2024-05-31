@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let url = format!("ws://{hostname}:{port}/websocket");
     // let mut connection = MoonConnection::new(url, 1000, 1000).await;
-    let mut connection = FastMoonConn::new(hostname, port, None, None, false).await;
+    let mut connection = FastMoonConn::new(hostname, port, None, None, false).await?;
 
     // let msg = MoonMSG::new(MoonMethod::PrinterObjectsList, None, Some(19876)); // Choose a message ID
     let msg = MoonRequest::new(MoonMethod::PrinterObjectsList, None);

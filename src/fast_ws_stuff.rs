@@ -54,75 +54,45 @@
 
 use fastwebsockets::handshake;
 use fastwebsockets::WebSocket;
-// use hyper::client::conn;
 use hyper::{Request, body::Bytes, upgrade::Upgraded, header::{UPGRADE, CONNECTION}};
 use hyper_util::rt::TokioIo;
 use http_body_util::Empty;
 use tokio::net::TcpStream;
 use std::future::Future;
-// use std::net::TcpListener;
 use anyhow::Result;
 use url::Url;
 
-// use crate::MoonRequest;
 
-// async fn connect(hostname: String, port: u16) -> Result<WebSocket<Upgraded>> {
 pub async fn connect(hostname: String, port: u16) -> Result<WebSocket<TokioIo<Upgraded>>> {
     let url = format!("ws://{hostname}:{port}/websocket");
     let connect_addr = Url::parse(&url).unwrap();
     let domain = connect_addr.domain().unwrap();
     let port = connect_addr
-        // .uri()
-        // .port_u16()
         .port()
-        // .or_else(|| match request.uri().scheme_str() {
         .or_else(|| match connect_addr.scheme() {
-            // Some("wss") => Some(443),
-            // Some("ws") => Some(80),
             "wss" => Some(443),
             "ws" => Some(80),
             _ => None,
         }).expect("Failed to figure out what port you wanted");
-        // .ok_or(Error::Url(UrlError::UnsupportedUrlScheme))?;
 
     let addr = format!("{domain}:{port}");
 
     let stream = TcpStream::connect(addr).await.unwrap();
-    // let stream = TcpListener::connect(addr).await.unwrap();
-    // let stream = TcpStream::connect(format!("{hostname}:{port}")).await?;
-
-    // let server_info_req = MoonRequest::new(crate::MoonMethod::ServerInfo, None);
-    // let _msg_id = server_info_req.id.clone();
-    // let msg_str = serde_json::to_string(&server_info_req).unwrap();
 
     let req = Request::builder()
         .method("GET")
-        // .uri("http://localhost:9001/")
-        // .uri(format!("http://{hostname}:{port}/websocket"))
-        // .uri(format!("http://{hostname}:{port}/ws"))
-        // .uri(format!("ws://{hostname}:{port}/ws"))
-        // .uri(format!("ws://{hostname}:{port}/websocket"))
-        // .uri(url)
         .uri("/websocket")
-        // .uri("http://scanhead.local/")
-        // .header("Host", "localhost:9001")
-        // .header("Host", format!("{hostname}:{port}"))
         .header("Host", hostname)
-        // .header("")
         .header(UPGRADE, "websocket")
         .header(CONNECTION, "upgrade")
-        // .header("User-Agent", "")
         .header(
             "Sec-WebSocket-Key",
             fastwebsockets::handshake::generate_key(),
         )
         .header("Sec-WebSocket-Version", "13")
         .body(Empty::<Bytes>::new()).unwrap();
-        // .body(msg_str).unwrap();
 
     let (ws, _) = handshake::client(&SpawnExecutor, req, stream).await.unwrap();
-    // let (rx, mut tx) = ws.split(tokio::io::split);
-    // let (rx, mut tx) = ws.into_inner().split();
     println!("Websocket Succesfully connected!");
     Ok(ws)
 }

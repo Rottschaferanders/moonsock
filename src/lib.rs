@@ -1,3 +1,4 @@
+use std::{error::Error, fmt};
 use serde::{Serialize, Deserialize};
 
 pub mod response;
@@ -171,6 +172,14 @@ pub struct MoonErrorContent {
     pub code: u32,
     pub message: String,
 }
+
+impl fmt::Display for MoonErrorContent {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.code, self.message)
+    }
+}
+
+impl Error for MoonErrorContent {}
 
 impl Default for MoonResponse {
     fn default() -> Self {

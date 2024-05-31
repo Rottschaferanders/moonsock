@@ -47,3 +47,8 @@ impl Default for MoonResultData {
     }
 }
 
+impl std::fmt::Display for MoonResultData {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}

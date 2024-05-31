@@ -1,4 +1,6 @@
+use moonsock::connection::PrinterSafetyStatus;
 use moonsock::FastMoonConn;
+use moonsock::MoonConnection;
 
 use std::env;
 
@@ -25,9 +27,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let url = format!("ws://{hostname}:{port}/websocket");
     // let mut connection = FastMoonConn::new(url.to_string(), 1000, 1000, false).await;
-    let mut connection = FastMoonConn::new(hostname, port, None, None, false).await;
+    // let mut connection = FastMoonConn::new(hostname, port, None, None, true).await?;
+    let mut connection = MoonConnection::new_simple(hostname, Some(port), false).await;
+    println!("Connected to moonraker");
+    match connection.ensure_ready().await {
+        PrinterSafetyStatus::Ready => println!("Printer is ready!"),
+        PrinterSafetyStatus::KlipperError(e) => eprintln!("Error: {e}"),
+        PrinterSafetyStatus::OtherError(e) => eprintln!("Error: {e}"),
+        PrinterSafetyStatus::Maybe3DPrintInsidePrinter(state) => eprintln!("Error: There could be a print inside the printer! Printer State: {state:?}"),
+        PrinterSafetyStatus::Shutdown => eprintln!("Error: The printer is shutting down!"),
+        PrinterSafetyStatus::TimeoutReached => eprintln!("Error: The printer timed out!"),
+        PrinterSafetyStatus::TooManyRestarts => eprintln!("Error: The printer restarted too many times!"),
+    }
+    // match connection.ensure_ready().await {
+    //     Ok(PrinterSafetyStatus::Ready) => println!("Printer is ready!"),
+    //     Err(PrinterSafetyStatus::KlipperError(e)) => eprintln!("Error: {e}"),
+    //     Err(PrinterSafetyStatus::OtherError(e)) => eprintln!("Error: {e}"),
+    //     Err(PrinterSafetyStatus::Maybe3DPrintInsidePrinter(state)) => eprintln!("Error: There could be a print inside the printer! Printer State: {state:?}"),
+    //     Err(PrinterSafetyStatus::Shutdown) => eprintln!("Error: The printer is shutting down!"),
+    //     Err(PrinterSafetyStatus::TimeoutReached) => eprintln!("Error: The printer timed out!"),
+    //     Err(PrinterSafetyStatus::TooManyRestarts) => eprintln!("Error: The printer restarted too many times!"),
+    //     _ => println!("Bad variant of PrinterSafetyStatus"),
+    // }
+    let is_homed = match connection.is_homed().await {
+        Ok(homed) => homed,
+        Err(e) => {
+            println!("Error getting printer info: {}", e.to_string());
+            Err(e)?
+        }
+    };
 
-    let is_homed = connection.is_homed().await?;
     if is_homed {
         println!("Printer is homed!");
     } else {
