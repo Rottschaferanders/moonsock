@@ -1,7 +1,7 @@
 use moonsock::{
     MoonResponse, JsonRpcVersion,
     NotificationMethod, NotificationParam,
-    ServiceStateChangedParam, ServiceState,
+    ServiceStateChangedParam, response::ServiceState,
 };
 
 #[test]

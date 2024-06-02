@@ -2,8 +2,12 @@ use std::{error::Error, fmt};
 use serde::{Serialize, Deserialize};
 
 pub mod response;
+pub use response::*;
+
+mod request;
+pub use request::*;
 // mod moon_response;
-// pub use moon_response::*;
+// pub use moon_responses::*;
 
 pub mod connection;
 pub mod moon_method;
@@ -18,18 +22,23 @@ pub use connection::MoonConnection;
 pub use moon_method::MoonMethod;
 pub use moon_param::*;
 // use messages::{PrinterState, PrinterInfoResponse};
-use response::{
-    PrinterInfoResponse,
-    MoonResultData,
-    ServerInfo, ServerConfig,
-    // TemperatureStore, 
-    // GcodeType,
-};
+// use response::{
+//     PrinterInfoResponse,
+//     MoonResultData,
+//     ServerInfo, ServerConfig,
+//     // TemperatureStore, 
+//     // GcodeType,
+// };
 
 pub mod fast_ws_stuff;
 // pub mod fast_ws_connection;
 mod fast_ws_connection;
 pub use fast_ws_connection::*;
+
+pub mod jsonrpc_ws_client;
+// pub mod moonraker_client;
+mod moonraker_client;
+pub use moonraker_client::MoonrakerClient;
 
 /// ---------------------- Request Serializing ------------------------
 
@@ -125,27 +134,27 @@ impl Default for JsonRpcVersion {
 //     Empty,
 // }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(untagged)]
-pub enum MoonResponse {
-    MoonResult {
-        jsonrpc: JsonRpcVersion,
-        result: MoonResultData,
-        id: u32,
-    },
-    MoonError {
-        jsonrpc: JsonRpcVersion,
-        error: MoonErrorContent,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        id: Option<u32>,
-    },
-    Notification {
-        jsonrpc: JsonRpcVersion,
-        method: NotificationMethod,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        params: Option<NotificationParam>,
-    },
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// #[serde(untagged)]
+// pub enum MoonResponse {
+//     MoonResult {
+//         jsonrpc: JsonRpcVersion,
+//         result: MoonResultData,
+//         id: u32,
+//     },
+//     MoonError {
+//         jsonrpc: JsonRpcVersion,
+//         error: MoonErrorContent,
+//         #[serde(skip_serializing_if = "Option::is_none")]
+//         id: Option<u32>,
+//     },
+//     Notification {
+//         jsonrpc: JsonRpcVersion,
+//         method: NotificationMethod,
+//         #[serde(skip_serializing_if = "Option::is_none")]
+//         params: Option<NotificationParam>,
+//     },
+// }
 
 // impl Default for MoonResponse {
 //     fn default() -> Self {
@@ -167,191 +176,191 @@ pub enum MoonResponse {
 //     }
 // }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct MoonErrorContent {
-    pub code: u32,
-    pub message: String,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct MoonErrorContent {
+//     pub code: u32,
+//     pub message: String,
+// }
 
-impl fmt::Display for MoonErrorContent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.code, self.message)
-    }
-}
+// impl fmt::Display for MoonErrorContent {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "{}: {}", self.code, self.message)
+//     }
+// }
 
-impl Error for MoonErrorContent {}
+// impl Error for MoonErrorContent {}
 
-impl Default for MoonResponse {
-    fn default() -> Self {
-        MoonResponse::MoonResult {
-            jsonrpc: JsonRpcVersion::V2,
-            result: MoonResultData::None,
-            id: 0,
-        }
-    }
-}
+// impl Default for MoonResponse {
+//     fn default() -> Self {
+//         MoonResponse::MoonResult {
+//             jsonrpc: JsonRpcVersion::V2,
+//             result: MoonResultData::None,
+//             id: 0,
+//         }
+//     }
+// }
 
-impl MoonResponse {
-    pub fn method(&self) -> Option<&NotificationMethod> {
-        match self {
-            Self::MoonResult { .. } 
-            | Self::MoonError { .. } => {
-                None
-            },
-            Self::Notification { method, .. } => {
-                Some(method)
-            },
-        }
-    }
-    // pub fn params(&self) -> Option<Vec<NotificationParam>> {
-    pub fn params(&self) -> Option<NotificationParam> {
-        match self {
-            Self::MoonResult { .. } 
-            | Self::MoonError { .. } => {
-                None
-            },
-            Self::Notification { params, .. } => {
-                params.clone()
-            },
-        }
-    }
-    pub fn set_id(&mut self, new_id: u32) {
-        match self {
-            Self::MoonError { jsonrpc, error, .. } => {
-                let new = Self::MoonError { 
-                    jsonrpc: jsonrpc.clone(), 
-                    error: error.clone(), 
-                    id: Some(new_id) 
-                };
-                *self = new;
-            },
-            Self::MoonResult { jsonrpc, result, .. } => {
-                let new = Self::MoonResult { 
-                    jsonrpc: jsonrpc.clone(), 
-                    result: result.clone(), 
-                    id: new_id 
-                };
-                *self = new;
-            },
-            Self::Notification { .. } => {},
-        }
-    }
-    pub fn default_server_info_result(server_info: ServerInfo) -> Self {
-        MoonResponse::MoonResult {
-            jsonrpc: JsonRpcVersion::V2,
-            result: MoonResultData::ServerInfo(server_info),
-            id: 0,
-        }
-    }
-    pub fn default_server_config_result(config: ServerConfig) -> Self {
-        MoonResponse::MoonResult {
-            jsonrpc: JsonRpcVersion::V2,
-            result: MoonResultData::ServerConfig(config),
-            id: 0,
-        }
-    }
-    // pub fn new_error(error: MoonErrorContent, id: u32) -> Self {
-    //     Self::MoonError {
-    //         jsonrpc: JsonRpcVersion::V2,
-    //         error,
-    //         id,
-    //     }
-    // }
-    // pub fn new_result(result: moon_result::MoonResultData, id: u32) -> Self {
-    //     Self::MoonResult {
-    //         jsonrpc: JsonRpcVersion::V2,
-    //         result,
-    //         id,
-    //     }
-    // }
-}
-
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct MoonRequest {
-    pub jsonrpc: JsonRpcVersion,
-    pub method: MoonMethod,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub params: Option<MoonParam>,
-    pub id: u32,
-}
+// impl MoonResponse {
+//     pub fn method(&self) -> Option<&NotificationMethod> {
+//         match self {
+//             Self::MoonResult { .. } 
+//             | Self::MoonError { .. } => {
+//                 None
+//             },
+//             Self::Notification { method, .. } => {
+//                 Some(method)
+//             },
+//         }
+//     }
+//     // pub fn params(&self) -> Option<Vec<NotificationParam>> {
+//     pub fn params(&self) -> Option<NotificationParam> {
+//         match self {
+//             Self::MoonResult { .. } 
+//             | Self::MoonError { .. } => {
+//                 None
+//             },
+//             Self::Notification { params, .. } => {
+//                 params.clone()
+//             },
+//         }
+//     }
+//     pub fn set_id(&mut self, new_id: u32) {
+//         match self {
+//             Self::MoonError { jsonrpc, error, .. } => {
+//                 let new = Self::MoonError { 
+//                     jsonrpc: jsonrpc.clone(), 
+//                     error: error.clone(), 
+//                     id: Some(new_id) 
+//                 };
+//                 *self = new;
+//             },
+//             Self::MoonResult { jsonrpc, result, .. } => {
+//                 let new = Self::MoonResult { 
+//                     jsonrpc: jsonrpc.clone(), 
+//                     result: result.clone(), 
+//                     id: new_id 
+//                 };
+//                 *self = new;
+//             },
+//             Self::Notification { .. } => {},
+//         }
+//     }
+//     pub fn default_server_info_result(server_info: ServerInfo) -> Self {
+//         MoonResponse::MoonResult {
+//             jsonrpc: JsonRpcVersion::V2,
+//             result: MoonResultData::ServerInfo(server_info),
+//             id: 0,
+//         }
+//     }
+//     pub fn default_server_config_result(config: ServerConfig) -> Self {
+//         MoonResponse::MoonResult {
+//             jsonrpc: JsonRpcVersion::V2,
+//             result: MoonResultData::ServerConfig(config),
+//             id: 0,
+//         }
+//     }
+//     // pub fn new_error(error: MoonErrorContent, id: u32) -> Self {
+//     //     Self::MoonError {
+//     //         jsonrpc: JsonRpcVersion::V2,
+//     //         error,
+//     //         id,
+//     //     }
+//     // }
+//     // pub fn new_result(result: moon_result::MoonResultData, id: u32) -> Self {
+//     //     Self::MoonResult {
+//     //         jsonrpc: JsonRpcVersion::V2,
+//     //         result,
+//     //         id,
+//     //     }
+//     // }
+// }
 
 
-impl MoonRequest {
-    /// Creates a new MoonRequest which can be sent to Moonraker via the websocket
-    /// The method is the name of the method to be called and is required for all messages
-    /// The params are the parameters to be passed to the method and are optional for some types of messages
-    /// refer to the moonraker api docs for more information for now.
-    /// The id is the id of the message and is optional for some types of messages. It allows you to match up responses to requests.
-    /// Assuming you use unique ids for every message you send, a response with a match id is the response to the request with that id.
-    pub fn new(method: MoonMethod, params: Option<MoonParam>) -> Self {
-        let id = rand::random();
-        Self {
-            jsonrpc: JsonRpcVersion::V2,
-            method,
-            params,
-            id
-        }
-        // match (params, id) {
-        //     (None, None) => Self::Method { jsonrpc: JsonRpcVersion::V2, method },
-        //     (None, Some(id)) => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method, id },
-        //     (Some(params), None) => Self::MethodParam { jsonrpc: JsonRpcVersion::V2, method, params },
-        //     (Some(params), Some(id)) => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method, params, id },
-        // }
-    }
-    pub fn gcode(gcode: String) -> Self {
-        Self::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: gcode.to_string() }))
-    }
-    // pub fn method(&self) -> Option<MoonMethod> {
-    //     match self {
-    //         // Self::MethodParamID { method, .. } 
-    //         // | Self::MethodParam { method, .. } 
-    //         // | Self::MethodID { method, .. } 
-    //         // | Self::Method { method, .. } => Some(method.clone()),
-    //         // Self::Empty => None,
-    //         // _ => None,
-    //     }
-    // }
-    // pub fn params(&self) -> Option<&MoonParam> {
-    //     match self {
-    //         Self::MethodParamID { params, .. } 
-    //         | Self::MethodParam { params, .. } => Some(params),
-    //         Self::Empty => None,
-    //         _ => None,
-    //     }
-    // }
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct MoonRequest {
+//     pub jsonrpc: JsonRpcVersion,
+//     pub method: MoonMethod,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub params: Option<MoonParam>,
+//     pub id: u32,
+// }
+
+
+// impl MoonRequest {
+//     /// Creates a new MoonRequest which can be sent to Moonraker via the websocket
+//     /// The method is the name of the method to be called and is required for all messages
+//     /// The params are the parameters to be passed to the method and are optional for some types of messages
+//     /// refer to the moonraker api docs for more information for now.
+//     /// The id is the id of the message and is optional for some types of messages. It allows you to match up responses to requests.
+//     /// Assuming you use unique ids for every message you send, a response with a match id is the response to the request with that id.
+//     pub fn new(method: MoonMethod, params: Option<MoonParam>) -> Self {
+//         let id = rand::random();
+//         Self {
+//             jsonrpc: JsonRpcVersion::V2,
+//             method,
+//             params,
+//             id
+//         }
+//         // match (params, id) {
+//         //     (None, None) => Self::Method { jsonrpc: JsonRpcVersion::V2, method },
+//         //     (None, Some(id)) => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method, id },
+//         //     (Some(params), None) => Self::MethodParam { jsonrpc: JsonRpcVersion::V2, method, params },
+//         //     (Some(params), Some(id)) => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method, params, id },
+//         // }
+//     }
+//     pub fn gcode(gcode: String) -> Self {
+//         Self::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: gcode.to_string() }))
+//     }
+//     // pub fn method(&self) -> Option<MoonMethod> {
+//     //     match self {
+//     //         // Self::MethodParamID { method, .. } 
+//     //         // | Self::MethodParam { method, .. } 
+//     //         // | Self::MethodID { method, .. } 
+//     //         // | Self::Method { method, .. } => Some(method.clone()),
+//     //         // Self::Empty => None,
+//     //         // _ => None,
+//     //     }
+//     // }
+//     // pub fn params(&self) -> Option<&MoonParam> {
+//     //     match self {
+//     //         Self::MethodParamID { params, .. } 
+//     //         | Self::MethodParam { params, .. } => Some(params),
+//     //         Self::Empty => None,
+//     //         _ => None,
+//     //     }
+//     // }
     
-    // pub fn set_id(&self, id: u32) -> Self {
-    //     // match self {
-    //     //     Self::MoonResult { result, .. } => {
-    //     //         Self::new_result(result.clone(), id)
-    //     //     },
-    //     //     Self::MoonError { error, .. } => {
-    //     //         Self::new_error(error.clone(), id)
-    //     //     },
-    //     //     Self::MethodParamID { method, params, .. } => {
-    //     //         Self::new(method.clone(), Some(params.clone()), Some(id))
-    //     //     },
-    //     //     Self::MethodParam { method, params, .. } => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id },
-    //     //     Self::MethodID { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id },
-    //     //     Self::Method { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id},
-    //     //     Self::Empty => {
-    //     //         Self::new(MoonMethod::Empty, None, Some(id))
-    //     //     },
-    //     // }
-    // }
-    // pub fn id(&self) -> Option<u32> {
-    //     match self {
-    //         Self::MoonResult { id, .. } => Some(id.clone()),
-    //         Self::MoonError { id, .. } => Some(id.clone()),
-    //         Self::MethodParamID { id, .. } => Some(id.clone()),
-    //         Self::MethodID { id, .. } => Some(id.clone()),
-    //         Self::MethodParam {..} => None,
-    //         Self::Method {..} => None,
-    //         Self::Empty => None,
-    //     }
-    // }
-}
+//     // pub fn set_id(&self, id: u32) -> Self {
+//     //     // match self {
+//     //     //     Self::MoonResult { result, .. } => {
+//     //     //         Self::new_result(result.clone(), id)
+//     //     //     },
+//     //     //     Self::MoonError { error, .. } => {
+//     //     //         Self::new_error(error.clone(), id)
+//     //     //     },
+//     //     //     Self::MethodParamID { method, params, .. } => {
+//     //     //         Self::new(method.clone(), Some(params.clone()), Some(id))
+//     //     //     },
+//     //     //     Self::MethodParam { method, params, .. } => Self::MethodParamID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), params: params.clone(), id },
+//     //     //     Self::MethodID { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id },
+//     //     //     Self::Method { method, .. } => Self::MethodID { jsonrpc: JsonRpcVersion::V2, method: method.clone(), id},
+//     //     //     Self::Empty => {
+//     //     //         Self::new(MoonMethod::Empty, None, Some(id))
+//     //     //     },
+//     //     // }
+//     // }
+//     // pub fn id(&self) -> Option<u32> {
+//     //     match self {
+//     //         Self::MoonResult { id, .. } => Some(id.clone()),
+//     //         Self::MoonError { id, .. } => Some(id.clone()),
+//     //         Self::MethodParamID { id, .. } => Some(id.clone()),
+//     //         Self::MethodID { id, .. } => Some(id.clone()),
+//     //         Self::MethodParam {..} => None,
+//     //         Self::Method {..} => None,
+//     //         Self::Empty => None,
+//     //     }
+//     // }
+// }
 
 // impl MoonMSG {
 //     /// Creates a new MoonMSG which can be sent to Moonraker via the websocket

@@ -14,6 +14,7 @@ use crate::{
         // AnnouncementEntryId,
         // AnnouncementDismissedParam, AnnouncementWakeParam,
         NotifyProcStatUpdateParam, FilelistChangedParam,
+        ServiceState,
     },
     // MachineProcStats,
     // utils::deserialize_single_item_array,
@@ -204,13 +205,13 @@ pub struct UpdateRefreshedParam {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VersionInfo {
-    pub system: SystemInfo,
+    pub system: SystemPkgInfo,
     #[serde(flatten)]
     pub applications: HashMap<String, ApplicationInfo>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SystemInfo {
+pub struct SystemPkgInfo {
     pub package_count: u64,
     pub package_list: Vec<String>,
 }
@@ -284,11 +285,11 @@ pub struct UserParam {
     pub username: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct ServiceState {
-    pub active_state: String,
-    pub sub_state: String,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+// pub struct ServiceState {
+//     pub active_state: String,
+//     pub sub_state: String,
+// }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ServiceStateChangedParam {

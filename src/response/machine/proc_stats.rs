@@ -126,7 +126,7 @@ impl Default for NetworkData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{MoonResponse, MoonResultData, JsonRpcVersion};
+    use crate::{response::{MoonResponse, MoonResultData}, JsonRpcVersion};
 
     #[test]
     fn test_deserialize_machine_proc_stats() {

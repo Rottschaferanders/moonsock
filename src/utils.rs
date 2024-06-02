@@ -107,3 +107,25 @@ pub mod single_element_array {
         Ok(params.into_iter().next().unwrap())
     }
 }
+
+// use tokio::io::{
+//     AsyncWriteExt, 
+//     stdin, stdout,
+// };
+// use tokio_util::codec::{FramedRead, LinesCodec};
+// use futures_util::StreamExt;
+
+// pub async fn prompt_user_cli<T>(question: T) -> Result<bool, Box<dyn std::error::Error>> 
+// where
+//     T: // Definition here
+// {
+//     let mut stdout = stdout();
+//     // stdout.write_all(b"Do you want to attempt a firmware restart? (y/n): ").await?;
+//     stdout.write_all(question.as_bytes()).await?;
+//     stdout.flush().await?;
+
+//     let stdin = stdin();
+//     let mut reader = FramedRead::new(stdin, LinesCodec::new());
+//     let input = reader.next().await.transpose()?.unwrap();
+//     Ok(input.trim().to_lowercase() == "y")
+// }

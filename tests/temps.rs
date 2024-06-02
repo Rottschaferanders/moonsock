@@ -1,7 +1,11 @@
 use moonsock::{
     // MoonMSG,
     MoonResponse,
-    response::{TemperatureStore, TempStoreData, HeaterNames, MoonResultData},
+    response::{
+        TemperatureStore, TempStoreData, HeaterNames, 
+        // MoonResultData
+    },
+    MoonResultData
 };
 use std::{
     string::String,

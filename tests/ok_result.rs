@@ -1,7 +1,8 @@
 use moonsock::{
     // MoonMSG, 
     MoonResponse,
-    response::{MoonResultData, MoonOk}
+    // response::{MoonResultData, MoonOk},
+    MoonResultData, MoonOk
 };
 #[test]
 fn result_ok() {

@@ -4,7 +4,7 @@ use maplit::hashmap;
 use moonsock::{
     ApplicationInfo, GitRepoInfo, JsonRpcVersion, MoonResponse, 
     NotificationMethod, NotificationParam, 
-    SystemInfo, UpdateRefreshedParam, VersionInfo,
+    SystemPkgInfo, UpdateRefreshedParam, VersionInfo,
     WebInfo, CommitInfo,
 };
 
@@ -150,7 +150,7 @@ fn test_parse_notify_update_refreshed() {
                 github_requests_remaining: 57,
                 github_limit_reset_time: 1615836932,
                 version_info: VersionInfo {
-                    system: SystemInfo {
+                    system: SystemPkgInfo {
                         package_count: 4,
                         package_list: vec![
                             "libtiff5".to_string(),

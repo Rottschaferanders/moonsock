@@ -1,4 +1,4 @@
-use std::error::Error;
+// use std::error::Error;
 // use std::fmt;
 // use std::error::Error as StdError;
 
@@ -35,12 +35,14 @@ use url::Url;
 
 use crate::{
     // fast_ws_stuff::connect, 
-    response::{MoonResultData, ServerInfo}, 
+    response::{ServerInfo, PrinterInfoResponse, PrinterState}, 
+    MoonResultData,
     // MoonErrorContent, 
     MoonMethod, MoonParam, MoonRequest, MoonResponse, 
     // NotificationMethod, 
-    PrinterInfoResponse, PrinterObject, 
-    response::PrinterState,
+    // PrinterInfoResponse, 
+    PrinterObject, 
+    // response::PrinterState,
     connection::MoonSendError,
 };
 
@@ -199,7 +201,7 @@ async fn ask_user_if_they_want_to_restart_printer() -> Result<bool, Box<dyn std:
 //     }
 // }
 
-impl<T: std::fmt::Debug> Error for MoonSendError<T> {}
+// impl<T: std::fmt::Debug> Error for MoonSendError<T> {}
 
 /// A WebSocket connection to a Moonraker server.
 pub struct FastMoonConn {
@@ -927,7 +929,7 @@ impl FastMoonConn {
                             if id == this_id {
                                 match result {
                                     MoonResultData::Ok(_) => return Ok(()),
-                                    _ => return Err(MoonSendError::MoonResult(result)),
+                                    _ => return Err(MoonSendError::String("Did not receive an Ok Response but expected one.".to_string())),
                                 }
                             }
                         },
