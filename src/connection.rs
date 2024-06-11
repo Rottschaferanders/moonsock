@@ -1,10 +1,5 @@
-// use std::ops::FromResidual;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-// use axum::http::response;
-// use spinoff::spinners::Moon;
-// use tokio::sync::Mutex;
-// use tokio::time::sleep;
 use std::collections::HashMap;
 use std::error::Error as StdError;
 
@@ -34,12 +29,13 @@ use core::pin::Pin;
 use futures_util::{sink::*, StreamExt};
 use url::Url;
 
-// use crate::response::{PrinterState, ServerInfo};
 use crate::{
     response::MoonResultData, 
     MoonErrorContent, MoonMethod, MoonParam, MoonRequest, MoonResponse, 
     response::{PrinterState, ServerInfo, PrinterInfoResponse}, 
     PrinterObject,
+    PrinterSafetyStatus,
+    MoonSendError,
 };
 
 pub const DEFAULT_WRITER_BUFFER_SIZE: usize = 1000;
@@ -51,48 +47,21 @@ const MAX_RESTARTS: u8 = 3;             // Maximum restart attempts
 const DEFAULT_SEND_LISTEN_TIMEOUT: Duration = Duration::from_secs(60);
 
 
-#[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum MoonSendError<T> {
-    #[error("Error sending message: {0}")]
-    SendError(#[from] mpsc::error::SendError<T>),
-    #[error("Moonraker error: {0}")]
-    MoonError(MoonErrorContent),
-    #[error("Error: {0}")]
-    String(String),
-}
-
-// impl<T> Into<MoonSendError<T>> for tokio::sync::mpsc::error::SendError<T> {
-//     fn into(self) -> MoonSendError<T> {
-//         MoonSendError::SendError(self)
-//     }
+// #[derive(thiserror::Error, Debug, Clone, PartialEq)]
+// pub enum MoonSendError<T> {
+//     #[error("Error sending message: {0}")]
+//     SendError(#[from] mpsc::error::SendError<T>),
+//     #[error("Moonraker error: {0}")]
+//     MoonError(MoonErrorContent),
+//     #[error("Error: {0}")]
+//     String(String),
 // }
 
-impl<T> From<Box<dyn StdError>> for MoonSendError<T> {
-    fn from(err: Box<dyn StdError>) -> Self {
-        MoonSendError::String(err.to_string())
-    }
-}
-
-// impl<T> std::fmt::Display for MoonSendError<T> {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         match self {
-//             MoonSendError::SendError(err) => write!(f, "Send error: {}", err),
-//             MoonSendError::MoonError(err) => write!(f, "Moon error: {}", err),
-//             // MoonSendError::MoonResult(err) => write!(f, "Moon result error: {}", err),
-//             MoonSendError::String(err) => write!(f, "String error: {}", err),
-//         }
+// impl<T> From<Box<dyn StdError>> for MoonSendError<T> {
+//     fn from(err: Box<dyn StdError>) -> Self {
+//         MoonSendError::String(err.to_string())
 //     }
 // }
-
-pub enum PrinterSafetyStatus {
-    Ready,
-    Maybe3DPrintInsidePrinter(PrinterState),
-    KlipperError(String),
-    Shutdown,
-    TimeoutReached,
-    TooManyRestarts,
-    OtherError(Box<dyn std::error::Error>),
-}
 
 pub struct MoonConnection {
     write_stream: mpsc::Sender<MoonRequest>,

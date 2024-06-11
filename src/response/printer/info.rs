@@ -62,7 +62,11 @@ pub struct PrinterInfoResponse {
 mod tests {
     use super::*;
     use serde_json;
-    use crate::{MoonResponse, JsonRpcVersion, response::MoonResultData, FastMoonConn};
+    use crate::{
+        MoonResponse, JsonRpcVersion, response::MoonResultData, 
+        // FastMoonConn
+        MoonrakerClient,
+    };
 
     #[test]
     fn test_serialize() {
@@ -125,7 +129,9 @@ mod tests {
         let hostname = std::env::var("MOONRAKER_HOSTNAME").unwrap_or("localhost".to_string());
         let port = std::env::var("MOONRAKER_PORT").unwrap_or("7125".to_string()).parse::<u16>().unwrap();
         // let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
-        let mut connection = FastMoonConn::new(hostname, port, None, None, false).await.expect("Failed to connect to printer");
+        // let mut connection = FastMoonConn::new(hostname, port, None, None, false).await.expect("Failed to connect to printer");
+        // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await.expect("Failed to connect to printer");
+        let mut connection = MoonrakerClient::new(hostname, Some(port)).await.expect("Failed to connect to printer");
         // let status = connection.get_printer_info(Some(1234)).await.unwrap();
         match connection.get_printer_info().await {
             Ok(printer_info) => {

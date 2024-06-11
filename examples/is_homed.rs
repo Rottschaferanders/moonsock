@@ -1,4 +1,5 @@
-use moonsock::connection::PrinterSafetyStatus;
+// use moonsock::connection::PrinterSafetyStatus;
+use moonsock::PrinterSafetyStatus;
 // use moonsock::FastMoonConn;
 // use moonsock::MoonConnection;
 use moonsock::MoonrakerClient;
@@ -35,7 +36,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let mut connection = FastMoonConn::new(url.to_string(), 1000, 1000, false).await;
     // let mut connection = FastMoonConn::new(hostname, port, None, None, true).await?;
     // let mut connection = MoonConnection::new_simple(hostname, Some(port), false).await?;
-    let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
+    // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
+    let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
     println!("Connected to moonraker");
     match connection.ensure_ready().await {
         PrinterSafetyStatus::Ready => println!("Printer is ready!"),

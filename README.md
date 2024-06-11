@@ -4,15 +4,15 @@ Moonsock is a simple way to connect to a klipper/moonraker 3D printer websocket 
 
 # Usage
 
-When opening up a MoonConnection, make sure you set both the read and write buffers large enough for your use case. In the example below, both are set to 1000.
+When opening up a MoonrakerClient, make sure you set both the read and write buffers large enough for your use case. In the example below, both are set to 1000.
 
 ## Connect to a printer
-Open up the websocket by creating a new MoonConnection inside a tokio runtime.
+Open up the websocket by creating a new MoonrakerClient inside a tokio runtime.
 
 ```rust
 // I prefer starting my own tokio runtimes for this sort of use-case. 
 use tokio::runtime::Builder;
-use moonsock::{MoonConnection, MoonMSG, MoonMethod};
+use moonsock::{MoonrakerClient, MoonMSG, MoonMethod};
 println!("Starting Main Runtime");
 let moon_rt = Builder::new_multi_thread()
     .worker_threads(1)
@@ -21,8 +21,9 @@ let moon_rt = Builder::new_multi_thread()
     .build()
     .unwrap();
 // Note: the port might be different for you, but 7125 is moonraker's default port. Check your moonraker.conf if you have problems
-let url = "ws://[printer ip or hostname]:7125/websocket";
-let mut connection = moon_rt.block_on(MoonConnection::new(URL.to_string(), 1000, 1000));
+// let url = "ws://[printer ip or hostname]:7125/websocket";
+let hostname = "[printer ip or hostname]"
+let mut connection = moon_rt.block_on(MoonrakerClient::new(hostname.to_string(), None));
 ```
 
 ## Basic Send Message

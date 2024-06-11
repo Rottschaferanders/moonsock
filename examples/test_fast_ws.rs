@@ -3,7 +3,9 @@ use std::env;
 
 use moonsock::{
     // fast_ws_stuff::connect,
-    FastMoonConn, MoonMethod, MoonRequest
+    // FastMoonConn, 
+    MoonMethod, MoonRequest,
+    MoonrakerClient,
 };
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;
@@ -23,10 +25,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let url = format!("ws://{hostname}:{port}/websocket");
     // let mut connection = FastMoonConn::new(url, None, None, false).await;
-    let mut conn = FastMoonConn::new(hostname, port, None, None, false).await?;
+    // let mut conn = FastMoonConn::new(hostname, port, None, None, false).await?;
+    // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
+    let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
     for _ in 0..10 {
         let msg = MoonRequest::new(MoonMethod::PrinterInfo, None);
-        let res = conn.send_listen(&msg).await?;
+        let res = connection.send_listen(msg).await?;
         println!("Res: {res:?}");
     }
 

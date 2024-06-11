@@ -1,5 +1,6 @@
 use moonsock::{
-    FastMoonConn, 
+    // FastMoonConn,
+    MoonrakerClient,
     // MoonMSG, 
     MoonRequest, MoonResponse,
     MoonMethod, response::MoonResultData
@@ -23,11 +24,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let url = format!("ws://{hostname}:{port}/websocket");
     // let mut connection = MoonConnection::new(url, 1000, 1000).await;
-    let mut connection = FastMoonConn::new(hostname, port, None, None, false).await?;
-
+    // let mut connection = FastMoonConn::new(hostname, port, None, None, false).await?;
+    // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
+    let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
     // let msg = MoonMSG::new(MoonMethod::PrinterObjectsList, None, Some(19876)); // Choose a message ID
     let msg = MoonRequest::new(MoonMethod::PrinterObjectsList, None);
-    let response = connection.send_listen(&msg).await?;
+    let response = connection.send_listen(msg).await?;
 
     match response {
         // MoonMSG::MoonResult { result, .. } => match result {

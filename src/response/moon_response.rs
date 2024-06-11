@@ -80,7 +80,6 @@ impl MoonResponse {
             },
         }
     }
-    // pub fn params(&self) -> Option<Vec<NotificationParam>> {
     pub fn params(&self) -> Option<NotificationParam> {
         match self {
             Self::MoonResult { .. } 
