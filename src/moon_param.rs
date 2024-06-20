@@ -8,8 +8,15 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 pub enum MoonParam {
     None,
-    // TemperatureStoreParams(TemperatureStoreParams),
-    // IncludeMonitors(bool),
+    AccessLoginParams {
+        username: String,
+        password: String,
+        source: String,
+    },
+    AccessPostUserParams {
+        username: String,
+        password: String,
+    },
     TemperatureStoreParams {
         include_monitors: bool,
     },

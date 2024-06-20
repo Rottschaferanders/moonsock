@@ -1,7 +1,9 @@
-# /target
 target
 
 .cargo/config.toml
 
-/da_compare1.txt
-/da_compare2.txt
+da_compare1.txt
+da_compare2.txt
+
+./da_compare1.txt
+./da_compare2.txt

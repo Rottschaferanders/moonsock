@@ -30,6 +30,8 @@ mod moonraker_client;
 // pub use moonraker_client::MoonrakerClient;
 pub use moonraker_client::*;
 
+pub mod moonraker_client_new;
+
 /// ---------------------- Request Serializing ------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

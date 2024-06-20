@@ -4,6 +4,12 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum MoonMethod {
     Empty,
+    #[serde(rename="access.login")]
+    AccessLogin,
+    #[serde(rename="access.logout")]
+    AccessLogout,
+    #[serde(rename="access.post_user")]
+    AccessPostUser,
     #[serde(rename="server.connection.identify")]
     ServerConnectionIdentify,
     #[serde(rename="server.info")]
@@ -191,46 +197,6 @@ pub enum MoonMethod {
     ServerExtensionsRequest,
     #[serde(rename="connection.send_event")]
     ConnectionSendEvent,
-    // #[serde(rename="notify_gcode_response")]
-    // NotifyGcodeResponse,
-    // #[serde(rename="notify_status_update")]
-    // NotifyStatusUpdate,
-    // #[serde(rename="notify_klippy_ready")]
-    // NotifyKlippyReady,
-    // #[serde(rename="notify_klippy_shutdown")]
-    // NotifyKlippyShutdown,
-    // #[serde(rename="notify_klippy_disconnected")]
-    // NotifyKlippyDisconnected,
-    // #[serde(rename="notify_filelist_change")]
-    // NotifyFilelistChange,
-    // #[serde(rename="notify_update_response")]
-    // NotifyUpdateResponse,
-    // #[serde(rename="notify_update_refreshed")]
-    // NotifyUpdateRefreshed,
-    // #[serde(rename="notify_cpu_throttled")]
-    // NotifyCpuThrottled,
-    // #[serde(rename="notify_proc_stat_update")]
-    // NotifyProcStatUpdate,
-    // #[serde(rename="notify_history_changed")]
-    // NotifyHistoryChanged,
-    // #[serde(rename="notify_user_created")]
-    // NotifyUserCreated,
-    // #[serde(rename="notify_user_deleted")]
-    // NotifyUserDeleted,
-    // #[serde(rename="notify_service_state_changed")]
-    // NotifyServiceStateChanged,
-    // #[serde(rename="notify_job_queue_changed")]
-    // NotifyJobQueueChanged,
-    // #[serde(rename="notify_button_event")]
-    // NotifyButtonEvent,
-    // #[serde(rename="notify_announcement_update")]
-    // NotifyAnnouncementUpdate,
-    // #[serde(rename="notify_announcement_dismissed")]
-    // NotifyAnnouncementDismissed,
-    // #[serde(rename="notify_announcement_wake")]
-    // NotifyAnnouncementWake,
-    // #[serde(rename="notify_agent_event")]
-    // NotifyAgentEvent,
     #[serde(untagged)]
     Other(String),
 }

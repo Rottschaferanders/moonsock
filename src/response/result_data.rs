@@ -38,6 +38,7 @@ pub enum MoonResultData {
         system_info: SystemInfo,
     },
     MachineProcStats(MachineProcStats),
+    AuthenticationResponse(AuthenticationResponse),
     None
 }
 
@@ -51,4 +52,14 @@ impl std::fmt::Display for MoonResultData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AuthenticationResponse {
+    pub username: String,
+    pub token: String,
+    pub refresh_token: String,
+    pub action: String,
+    pub source: String,
 }

@@ -1,92 +1,71 @@
-#[test]
-fn test_deserialize_machine_proc_stats() {
-    let json = r#"
-        {
-            "jsonrpc": "2.0",
-            "result": {
-                "moonraker_stats": [
-                    {
-                        "time": 1626612666.850755,
-                        "cpu_usage": 2.66,
-                        "memory": 24732,
-                        "mem_units": "kB"
-                    },
-                    {
-                        "time": 1626612667.8521338,
-                        "cpu_usage": 2.62,
-                        "memory": 24732,
-                        "mem_units": "kB"
-                    }
-                ],
-                "throttled_state": {
-                    "bits": 0,
-                    "flags": []
-                },
-                "cpu_temp": 45.622,
-                "network": {
-                    "lo": {
-                        "rx_bytes": 113516429,
-                        "tx_bytes": 113516429,
-                        "bandwidth": 3342.68
-                    },
-                    "wlan0": {
-                        "rx_bytes": 48471767,
-                        "tx_bytes": 113430843,
-                        "bandwidth": 4455.91
-                    }
-                },
-                "system_cpu_usage": {
-                    "cpu": 2.53,
-                    "cpu0": 3.03,
-                    "cpu1": 5.1,
-                    "cpu2": 1.02,
-                    "cpu3": 1
-                },
-                "system_uptime": 2876970.38089603,
-                "websocket_connections": 4
-            },
-            "id": 345
+struct JsonRpcWsClient {
+    // ...
+    pending_requests: Arc<Mutex<HashMap<u32, (oneshot::Sender<JsonRpcResponse>, PendingRequestId)>>>,
+    dirty_requests: Arc<Mutex<Vec<(Instant, u32)>>>,
+    has_dirty_requests: Arc<AtomicBool>,
+}
+
+impl JsonRpcWsClient {
+    // ...
+
+    async fn mark_pending_requests_as_dirty(&self, error_message: String) {
+        let mut pending_requests = self.pending_requests.lock().await;
+        if pending_requests.len() == 1 {
+            // If there is only one pending request, send the error through the oneshot channel
+            let (_, (tx, _)) = pending_requests.drain().next().unwrap();
+            tx.send(JsonRpcResponse::ReturnedError(serde_json::Value::String(error_message))).ok();
+        } else {
+            // Mark all pending requests as dirty
+            let now = Instant::now();
+            let mut dirty_requests = self.dirty_requests.lock().await;
+            for (id, (tx, _)) in pending_requests.iter_mut() {
+                *tx = (tx.clone(), PendingRequestId::Dirty {
+                    id: *id,
+                    timeout: now + DEFAULT_SEND_LISTEN_TIMEOUT,
+                    error_message: error_message.clone(),
+                });
+                dirty_requests.push((now + DEFAULT_SEND_LISTEN_TIMEOUT, *id));
+            }
+            self.has_dirty_requests.store(true, Ordering::SeqCst);
         }
-    "#;
+    }
 
-    let response: MoonResponse = serde_json::from_str(json).unwrap();
-
-    match response {
-        MoonResponse::MoonResult { result, id } => {
-            assert_eq!(id, 345);
-            match result {
-                MoonResultData::MachineProcStats(machine_proc_stats) => {
-                    assert_eq!(machine_proc_stats.moonraker_stats.len(), 2);
-                    assert_eq!(machine_proc_stats.moonraker_stats[0].time, 1626612666.850755);
-                    assert_eq!(machine_proc_stats.moonraker_stats[0].cpu_usage, 2.66);
-                    assert_eq!(machine_proc_stats.moonraker_stats[0].memory, 24732);
-                    assert_eq!(machine_proc_stats.moonraker_stats[0].mem_units, "kB");
-                    assert_eq!(machine_proc_stats.moonraker_stats[1].time, 1626612667.8521338);
-                    assert_eq!(machine_proc_stats.moonraker_stats[1].cpu_usage, 2.62);
-                    assert_eq!(machine_proc_stats.moonraker_stats[1].memory, 24732);
-                    assert_eq!(machine_proc_stats.moonraker_stats[1].mem_units, "kB");
-                    assert_eq!(machine_proc_stats.throttled_state.bits, 0);
-                    assert_eq!(machine_proc_stats.throttled_state.flags, Vec::<String>::new());
-                    assert_eq!(machine_proc_stats.cpu_temp, Some(45.622));
-                    assert_eq!(machine_proc_stats.network.len(), 2);
-                    assert_eq!(machine_proc_stats.network["lo"].rx_bytes, 113516429);
-                    assert_eq!(machine_proc_stats.network["lo"].tx_bytes, 113516429);
-                    assert_eq!(machine_proc_stats.network["lo"].bandwidth, 3342.68);
-                    assert_eq!(machine_proc_stats.network["wlan0"].rx_bytes, 48471767);
-                    assert_eq!(machine_proc_stats.network["wlan0"].tx_bytes, 113430843);
-                    assert_eq!(machine_proc_stats.network["wlan0"].bandwidth, 4455.91);
-                    assert_eq!(machine_proc_stats.system_cpu_usage.len(), 5);
-                    assert_eq!(machine_proc_stats.system_cpu_usage["cpu"], 2.53);
-                    assert_eq!(machine_proc_stats.system_cpu_usage["cpu0"], 3.03);
-                    assert_eq!(machine_proc_stats.system_cpu_usage["cpu1"], 5.1);
-                    assert_eq!(machine_proc_stats.system_cpu_usage["cpu2"], 1.02);
-                    assert_eq!(machine_proc_stats.system_cpu_usage["cpu3"], 1.0);
-                    assert_eq!(machine_proc_stats.system_uptime, Some(2876970.38089603));
-                    assert_eq!(machine_proc_stats.websocket_connections, 4);
+    async fn check_dirty_requests(&self) {
+        if !self.has_dirty_requests.load(Ordering::SeqCst) {
+            return;
+        }
+        let mut dirty_requests = self.dirty_requests.lock().await;
+        let now = Instant::now();
+        let mut pending_requests = self.pending_requests.lock().await;
+        let mut count = 0;
+        let mut ids_to_remove = Vec::new();
+        for (timeout, id) in dirty_requests.iter() {
+            if now >= *timeout {
+                // Timeout has been reached, return the error message to the function
+                if let Some((tx, PendingRequestId::Dirty {
+                    id: _,
+                    timeout: _,
+                    error_message,
+                })) = pending_requests.get_mut(id)
+                {
+                    count += 1;
+                    let error_message = if count > 1 {
+                        format!("Error: This error may not be associated with this request and may have originated from another. One of your requests had an id that the websocket server could not parse. There is probably something wrong with the way the websocket server is parsing ids. {}", error_message)
+                    } else {
+                        error_message.clone()
+                    };
+                    tx.send(JsonRpcResponse::ReturnedError(serde_json::Value::String(error_message))).ok();
+                    ids_to_remove.push(*id);
                 }
-                _ => assert!(false),
             }
         }
-        _ => assert!(false),
+        // Remove the dirty requests from the vector and the pending requests map
+        dirty_requests.retain(|(t, _)| *t > now);
+        for id in ids_to_remove {
+            pending_requests.remove(&id);
+        }
+        if dirty_requests.is_empty() {
+            self.has_dirty_requests.store(false, Ordering::SeqCst);
+        }
     }
 }

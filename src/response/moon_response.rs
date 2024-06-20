@@ -1,8 +1,11 @@
+// use jsonrpc_message_derive::JsonRpcMessage;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use crate::{
-    jsonrpc_ws_client::JsonRpcMessage, response::{ServerConfig, ServerInfo}, JsonRpcVersion, MoonResultData, NotificationMethod, NotificationParam
+    jsonrpc_ws_client::{new_client::{JsonRpcError, JsonRpcResponse}, JsonRpcMessage}, 
+    response::{ServerConfig, ServerInfo}, 
+    JsonRpcVersion, MoonResultData, NotificationMethod, NotificationParam
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -19,6 +22,7 @@ impl fmt::Display for MoonErrorContent {
 
 impl std::error::Error for MoonErrorContent {}
 
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, JsonRpcMessage)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum MoonResponse {
@@ -29,7 +33,8 @@ pub enum MoonResponse {
     },
     MoonError {
         jsonrpc: JsonRpcVersion,
-        error: MoonErrorContent,
+        // error: MoonErrorContent,
+        error: JsonRpcError,
         #[serde(skip_serializing_if = "Option::is_none")]
         id: Option<u32>,
     },
@@ -39,6 +44,24 @@ pub enum MoonResponse {
         #[serde(skip_serializing_if = "Option::is_none")]
         params: Option<NotificationParam>,
     },
+}
+
+impl From<JsonRpcResponse> for MoonResponse {
+    fn from(response: JsonRpcResponse) -> Self {
+        match response {
+            JsonRpcResponse::Result(result) => MoonResponse::MoonResult {
+                jsonrpc: JsonRpcVersion::V2,
+                result: serde_json::from_value(result.result).unwrap(),
+                id: 0,
+            },
+            JsonRpcResponse::ReturnedError(error) => MoonResponse::MoonError {
+                jsonrpc: JsonRpcVersion::V2,
+                // error: serde_json::from_value(error).unwrap(),
+                error,
+                id: None,
+            },
+        }
+    }
 }
 
 impl JsonRpcMessage for MoonResponse {
