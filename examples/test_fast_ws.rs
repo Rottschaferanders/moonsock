@@ -6,7 +6,8 @@ use moonsock::{
     // FastMoonConn, 
     MoonMethod, MoonRequest,
     // MoonrakerClient,
-    moonraker_client_new::MoonrakerClient,
+    // moonraker_client_new::MoonrakerClient,
+    MoonrakerClient,
 };
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;

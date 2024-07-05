@@ -1,6 +1,7 @@
 // use moonsock::FastMoonConn;
 // use moonsock::MoonrakerClient;
-use moonsock::moonraker_client_new::MoonrakerClient;
+// use moonsock::moonraker_client_new::MoonrakerClient;
+use moonsock::MoonrakerClient;
 use std::env;
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;

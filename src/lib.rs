@@ -28,9 +28,11 @@ pub mod jsonrpc_ws_client;
 
 mod moonraker_client;
 // pub use moonraker_client::MoonrakerClient;
-pub use moonraker_client::*;
+// pub use moonraker_client::*;
 
-pub mod moonraker_client_new;
+// pub mod moonraker_client_new;
+mod moonraker_client_new;
+pub use moonraker_client_new::*;
 
 /// ---------------------- Request Serializing ------------------------
 

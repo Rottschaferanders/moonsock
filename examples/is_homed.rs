@@ -1,10 +1,11 @@
 // use moonsock::connection::PrinterSafetyStatus;
 // use moonsock::PrinterSafetyStatus;
-use moonsock::moonraker_client_new::PrinterSafetyStatus;
+// use moonsock::moonraker_client_new::PrinterSafetyStatus;
 // use moonsock::FastMoonConn;
 // use moonsock::MoonConnection;
 // use moonsock::MoonrakerClient;
-use moonsock::moonraker_client_new::MoonrakerClient;
+// use moonsock::moonraker_client_new::MoonrakerClient;
+use moonsock::{MoonrakerClient, PrinterSafetyStatus};
 // use tracing::subscriber;
 // use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};

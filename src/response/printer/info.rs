@@ -131,7 +131,8 @@ mod tests {
         // let mut connection = MoonConnection::new(url.to_string(), 1000, 1000).await;
         // let mut connection = FastMoonConn::new(hostname, port, None, None, false).await.expect("Failed to connect to printer");
         // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await.expect("Failed to connect to printer");
-        let mut connection = MoonrakerClient::new(hostname, Some(port)).await.expect("Failed to connect to printer");
+        // let mut connection = MoonrakerClient::new(hostname, Some(port)).await.expect("Failed to connect to printer");
+        let mut connection = MoonrakerClient::connect(hostname, Some(port)).await.expect("Failed to connect to printer");
         // let status = connection.get_printer_info(Some(1234)).await.unwrap();
         match connection.get_printer_info().await {
             Ok(printer_info) => {
