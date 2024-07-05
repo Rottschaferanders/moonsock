@@ -1,5 +1,6 @@
 // use moonsock::FastMoonConn;
-use moonsock::MoonrakerClient;
+// use moonsock::MoonrakerClient;
+use moonsock::moonraker_client_new::MoonrakerClient;
 use std::env;
 
 const DEFAULT_MOONRAKER_PORT: u16 = 7125;
@@ -21,7 +22,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let mut connection = MoonConnection::new(url, 1000, 1000).await;
     // let mut connection = FastMoonConn::new(hostname, port, None, None, false).await?;
     // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
-    let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
+    // let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
+    let mut connection = MoonrakerClient::connect(hostname, Some(port)).await?;
     
     let is_z_tilt_appled = connection.is_z_tilt_applied().await?;
     if is_z_tilt_appled {

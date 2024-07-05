@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let mut connection = FastMoonConn::new(hostname, port, None, None, true).await?;
     // let mut connection = MoonConnection::new_simple(hostname, Some(port), false).await?;
     // let mut connection = MoonrakerClient::new_simple(hostname, Some(port), false).await?;
-    let mut connection = MoonrakerClient::new(hostname, Some(port)).await?;
+    let mut connection = MoonrakerClient::connect(hostname, Some(port)).await?;
     let username = env::var("MOONRAKER_USERNAME").expect("Please add the `MOONRAKER_USERNAME` environment variable");
     let password = env::var("MOONRAKER_PASSWORD").expect("Please add the `MOONRAKER_PASSWORD` environment variable");
     // connection.create_user(&username, &password).await?;

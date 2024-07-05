@@ -42,6 +42,7 @@ const PRINTER_READY_TIMEOUT: u64 = 240;
 const MAX_RESTARTS: u8 = 3;
 
 
+#[derive(Debug)]
 pub enum PrinterSafetyStatus {
     Ready,
     Maybe3DPrintInsidePrinter(PrinterState),
@@ -82,33 +83,33 @@ pub struct MoonrakerClient {
 
 impl MoonrakerClient {
     /// Creates a new `MoonrakerClient` with the given hostname and port.
-    pub async fn new(hostname: String, port: Option<u16>) -> Result<MoonrakerClient, Box<dyn std::error::Error>> {
+    pub async fn connect(hostname: String, port: Option<u16>) -> Result<MoonrakerClient, Box<dyn std::error::Error>> {
         let port = port.unwrap_or(DEFAULT_MOONRAKER_PORT);
         let url = format!("ws://{hostname}:{port}/websocket");
-        Self::new_with_buffer_sizes(url, None, None).await
+        Self::connect_with_buffer_sizes(url, None, None).await
     }
 
     /// Creates a new `MoonrakerClient` with the given URL and buffer sizes.
-    pub async fn new_with_buffer_sizes(url: String, writer_buffer_size: Option<usize>, reader_buffer_size: Option<usize>) -> Result<Self, Box<dyn std::error::Error>> {
-        let connection = JsonRpcWsClient::new(url, writer_buffer_size, reader_buffer_size).await?;
+    pub async fn connect_with_buffer_sizes(url: String, writer_buffer_size: Option<usize>, reader_buffer_size: Option<usize>) -> Result<Self, Box<dyn std::error::Error>> {
+        let connection = JsonRpcWsClient::connect(url, writer_buffer_size, reader_buffer_size).await?;
         Ok(MoonrakerClient { connection })
     }
 
     /// Sends a message to Moonraker without waiting for a response.
     pub async fn send(&mut self, message: MoonRequest) -> Result<(), SendError<JsonRpcRequest>> {
-        self.connection.send(message.into()).await?;
+        self.connection.send_no_response(message.into()).await?;
         Ok(())
     }
 
     /// Sends a message to Moonraker and waits for a response.
-    pub async fn send_listen(&mut self, message: MoonRequest) -> Result<MoonResponse, Box<dyn std::error::Error>> {
-        let response = self.connection.send_listen(message.into()).await?;
+    pub async fn send_with_response(&mut self, message: MoonRequest) -> Result<MoonResponse, Box<dyn std::error::Error>> {
+        let response = self.connection.send_with_response(message.into()).await?;
         Ok(response.into())
     }
 
     /// Sends a message to Moonraker and waits for an OK response.
     pub async fn send_wait_for_ok(&mut self, message: MoonRequest) -> Result<(), Box<dyn std::error::Error>> {
-        let res = match self.connection.send_listen(message.into()).await {
+        let res = match self.connection.send_with_response(message.into()).await {
             Ok(res) => res.into(),
             Err(e) => {
                 tracing::error!("Error sending message: {}", e);
@@ -117,7 +118,7 @@ impl MoonrakerClient {
         };
         match res {
             MoonResponse::MoonResult { result: MoonResultData::Ok(..), .. } => Ok(()),
-            // Should never be possible to get the `RES::MoonError` variant as long as the logic of `send_listen` never changes, but
+            // Should never be possible to get the `RES::MoonError` variant as long as the logic of `send_with_response` never changes, but
             // for correctness reasons we should still check for it.
             MoonResponse::MoonError { error, .. } => {
                 tracing::error!("Error: {:?}", error);
@@ -138,7 +139,7 @@ impl MoonrakerClient {
                 password: password.into()
             }
         ));
-        self.send_listen(message).await
+        self.send_with_response(message).await
     }
 
     pub async fn authenticate(&mut self, username: String, password: String) -> Result<MoonResponse, Box<dyn std::error::Error>> {
@@ -148,7 +149,7 @@ impl MoonrakerClient {
             source: "moonraker".to_string(),
         };
         let message = MoonRequest::new(MoonMethod::AccessLogin, Some(params));
-        self.send_listen(message).await
+        self.send_with_response(message).await
     }
 
     /// Ensures that the printer is ready.
@@ -267,7 +268,7 @@ impl MoonrakerClient {
     /// Gets the server information.
     pub async fn get_server_info(&mut self) -> Result<ServerInfo, Box<dyn std::error::Error>> {
         let message = MoonRequest::new(MoonMethod::ServerInfo, None);
-        let res = match self.send_listen(message).await {
+        let res = match self.send_with_response(message).await {
             Ok(res) => res,
             Err(e) => {
                 tracing::error!("Error sending message: {}", e);
@@ -296,7 +297,7 @@ impl MoonrakerClient {
     /// Gets the printer information.
     pub async fn get_printer_info(&mut self) -> Result<PrinterInfoResponse, Box<dyn std::error::Error>> {
         let message = MoonRequest::new(MoonMethod::PrinterInfo, None);
-        let res = match self.send_listen(message).await {
+        let res = match self.send_with_response(message).await {
             Ok(res) => res,
             Err(e) => {
                 tracing::error!("Error sending message: {}", e);
@@ -319,6 +320,9 @@ impl MoonrakerClient {
                     }
                 }
             },
+            MoonResponse::MoonError { error, .. } => {
+                return Err(error.into());
+            }
             _ => {
                 tracing::error!("Error in `MoonrakerClient::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.");
                 Err("Error in `MoonrakerClient::get_printer_info`: did not receive a MoonMSG::MoonResult response, but should have. This is a bug.".into())
@@ -333,7 +337,7 @@ impl MoonrakerClient {
         };
         let msg = MoonRequest::new(MoonMethod::PrinterObjectsQuery, Some(param));
 
-        match self.send_listen(msg).await {
+        match self.send_with_response(msg).await {
             Ok(res) => {
                 match res {
                     MoonResponse::MoonResult { result, .. } => {
@@ -395,7 +399,7 @@ impl MoonrakerClient {
         };
         let msg = MoonRequest::new(MoonMethod::PrinterObjectsQuery, Some(param));
 
-        match self.send_listen(msg).await {
+        match self.send_with_response(msg).await {
             Ok(res) => {
                 match res {
                     MoonResponse::MoonResult { result, .. } => {
