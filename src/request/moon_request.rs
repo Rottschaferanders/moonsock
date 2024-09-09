@@ -2,8 +2,12 @@
 use serde::{Serialize, Deserialize};
 
 use crate::{
-    jsonrpc_ws_client::JsonRpcMessage, JsonRpcVersion, MoonMethod, MoonParam,
-    jsonrpc_ws_client::new_client::JsonRpcRequest,
+    // jsonrpc_ws_client::JsonRpcMessage, 
+    JsonRpcVersion, MoonMethod, MoonParam,
+    jsonrpc_ws_client::{
+        JsonRpcRequest, 
+        // JsonRpcMessage
+    },
 };
 
 
@@ -32,16 +36,16 @@ pub struct MoonRequest {
     pub id: u32,
 }
 
-impl JsonRpcMessage for MoonRequest {
-    /// Returns the ID of the request.
-    fn id(&self) -> Option<u32> {
-        Some(self.id)
-    }
-    /// Sets the ID of the request.
-    fn set_id(&mut self, id: u32) {
-        self.id = id;
-    }
-}
+// impl JsonRpcMessage for MoonRequest {
+//     /// Returns the ID of the request.
+//     fn id(&self) -> Option<u32> {
+//         Some(self.id)
+//     }
+//     /// Sets the ID of the request.
+//     fn set_id(&mut self, id: u32) {
+//         self.id = id;
+//     }
+// }
 
 impl Into<JsonRpcRequest> for MoonRequest {
     fn into(self) -> JsonRpcRequest {

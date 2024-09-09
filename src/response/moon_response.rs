@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use crate::{
-    jsonrpc_ws_client::{new_client::{JsonRpcError, JsonRpcResponse}, JsonRpcMessage}, 
+    jsonrpc_ws_client::{
+        JsonRpcError, JsonRpcResponse, 
+        // JsonRpcMessage
+    }, 
     response::{ServerConfig, ServerInfo}, 
     JsonRpcVersion, MoonResultData, NotificationMethod, NotificationParam
 };
@@ -64,22 +67,22 @@ impl From<JsonRpcResponse> for MoonResponse {
     }
 }
 
-impl JsonRpcMessage for MoonResponse {
-    fn id(&self) -> Option<u32> {
-        match self {
-            MoonResponse::MoonResult { id, .. } => Some(*id),
-            MoonResponse::MoonError { id, .. } => *id,
-            MoonResponse::Notification { .. } => None,
-        }
-    }
-    fn set_id(&mut self, new_id: u32) {
-        match self {
-            MoonResponse::MoonResult { id, .. } => *id = new_id,
-            MoonResponse::MoonError { id, .. } => *id = Some(new_id),
-            MoonResponse::Notification { .. } => {},
-        }
-    }
-}
+// impl JsonRpcMessage for MoonResponse {
+//     fn id(&self) -> Option<u32> {
+//         match self {
+//             MoonResponse::MoonResult { id, .. } => Some(*id),
+//             MoonResponse::MoonError { id, .. } => *id,
+//             MoonResponse::Notification { .. } => None,
+//         }
+//     }
+//     fn set_id(&mut self, new_id: u32) {
+//         match self {
+//             MoonResponse::MoonResult { id, .. } => *id = new_id,
+//             MoonResponse::MoonError { id, .. } => *id = Some(new_id),
+//             MoonResponse::Notification { .. } => {},
+//         }
+//     }
+// }
 
 impl Default for MoonResponse {
     fn default() -> Self {

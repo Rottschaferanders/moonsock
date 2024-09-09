@@ -22,7 +22,7 @@ use crate::{
     response::{MoonResultData, PrinterInfoResponse},
     PrinterObject,
     // jsonrpc_ws_client::JsonRpcWsClient,
-    jsonrpc_ws_client::new_client::{
+    jsonrpc_ws_client::{
         JsonRpcRequest, 
         // JsonRpcResponse, 
         JsonRpcWsClient

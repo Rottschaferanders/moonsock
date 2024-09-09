@@ -26,7 +26,7 @@ pub use moon_param::*;
 
 pub mod jsonrpc_ws_client;
 
-mod moonraker_client;
+// mod moonraker_client;
 // pub use moonraker_client::MoonrakerClient;
 // pub use moonraker_client::*;
 
