@@ -28,30 +28,6 @@ const DEFAULT_SEND_LISTEN_TIMEOUT: Duration = Duration::from_secs(60);
 /// A trait that represents a JSON-RPC message. It provides methods to get and set the message's ID.
 ///
 /// This trait is used by the `JsonRpcWsClient` to track and match requests and responses.
-///
-/// # Examples
-///
-/// ```rust
-/// use jsonrpc_ws_client::JsonRpcMessage;
-///
-/// #[derive(Serialize, Deserialize, Debug)]
-/// struct MyRequest {
-///     jsonrpc: String,
-///     method: String,
-///     params: Vec<String>,
-///     id: Option<u32>,
-/// }
-///
-/// impl JsonRpcMessage for MyRequest {
-///     fn id(&self) -> Option<u32> {
-///         self.id
-///     }
-///
-///     fn set_id(&mut self, id: u32) {
-///         self.id = Some(id);
-///     }
-/// }
-/// ```
 pub trait JsonRpcMessage {
     /// Returns the ID of the message.
     fn id(&self) -> Option<u32>;
@@ -108,77 +84,6 @@ pub trait JsonRpcMessage {
 
 
 
-/// A WebSocket client for sending and receiving JSON-RPC messages.
-///
-/// **Important:** When using the `JsonRpcWsClient`, it is crucial that your top-level serde types (i.e., the types you use for `REQ` and `RES`) implement the `JsonRpcMessage` trait correctly. This trait provides methods for getting and setting the message's ID, which is essential for tracking and matching requests and responses.
-///
-/// To implement the `JsonRpcMessage` trait, you need to provide implementations for the `id` and `set_id` methods. The `id` method should return the current ID of the message, and the `set_id` method should set the ID of the message.
-///
-/// Here's an example of how you might implement the `JsonRpcMessage` trait for a simple serde type:
-/// ```rust
-/// #[derive(Serialize, Deserialize, Debug)]
-/// struct MyRequest {
-///     jsonrpc: String,
-///     method: String,
-///     params: Vec<String>,
-///     id: Option<u32>,
-/// }
-///
-/// impl JsonRpcMessage for MyRequest {
-///     fn id(&self) -> Option<u32> {
-///         self.id
-///     }
-///
-///     fn set_id(&mut self, id: u32) {
-///         self.id = Some(id);
-///     }
-/// }
-/// ```
-/// If you do not implement the `JsonRpcMessage` trait correctly for your serde types, the program will not compile. This is because the `JsonRpcWsClient` relies on the trait's methods to function correctly.
-///
-/// By implementing the `JsonRpcMessage` trait correctly, you ensure that your serde types can be used with the `JsonRpcWsClient` to send and receive JSON-RPC messages.
-///
-/// # Examples
-///
-/// ```rust
-/// use jsonrpc_ws_client::JsonRpcWsClient;
-///
-/// #[derive(Serialize, Deserialize, Debug)]
-/// struct MyRequest {
-///     jsonrpc: String,
-///     method: String,
-///     params: Vec<String>,
-///     id: Option<u32>,
-/// }
-///
-/// impl JsonRpcMessage for MyRequest {
-///     fn id(&self) -> Option<u32> {
-///         self.id
-///     }
-///
-///     fn set_id(&mut self, id: u32) {
-///         self.id = Some(id);
-///     }
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let client = JsonRpcWsClient::<MyRequest, MyResponse>::new("wss://example.com/websocket".to_string(), None, None).await.unwrap();
-///
-///     let request = MyRequest {
-///         jsonrpc: "2.0".to_string(),
-///         method: "my_method".to_string(),
-///         params: vec!["param1".to_string(), "param2".to_string()],
-///         id: None,
-///     };
-///
-///     client.send(request).await.unwrap();
-///
-///     let response = client.recv().await.unwrap();
-///
-///     println!("{:?}", response);
-/// }
-/// ```
 pub struct JsonRpcWsClient<REQ, RES>
 where
     REQ: Serialize + JsonRpcMessage + std::fmt::Debug + std::marker::Send + 'static,
@@ -236,14 +141,6 @@ where
     /// * `url`: The URL of the WebSocket server to connect to.
     /// * `writer_buffer_size`: The size of the buffer for sending messages. If `None`, the default buffer size is used.
     /// * `reader_buffer_size`: The size of the buffer for receiving messages. If `None`, the default buffer size is used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use jsonrpc_ws_client::JsonRpcWsClient;
-    ///
-    /// let client = JsonRpcWsClient::<MyRequest, MyResponse>::new("wss://example.com/websocket".to_string(), None, None).await.unwrap();
-    /// ```
     pub async fn new(url: String, writer_buffer_size: Option<usize>, reader_buffer_size: Option<usize>) -> Result<Self, Box<dyn std::error::Error>> {
         let writer_buffer_size = writer_buffer_size.unwrap_or(DEFAULT_WRITER_BUFFER_SIZE);
         let reader_buffer_size = reader_buffer_size.unwrap_or(DEFAULT_READER_BUFFER_SIZE);
@@ -356,70 +253,9 @@ where
             id_counter: AtomicUsize::new(1),
             pending_requests,
         })
-    }
-
-    // Shuts down the client and releases its resources. Not needed because the `Drop` trait handles the proper shutdown.
-    // pub async fn shutdown(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-    //     match self.shutdown_sender.send(()).await {
-    //         Ok(()) => Ok(()),
-    //         Err(e) => Err(format!("Failed to send shutdown signal to the moonraker message stream: {}", e.to_string()).into()),
-    //     }
-    // }
-
-    
+    }  
 
     /// Receives a message from the WebSocket server.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use jsonrpc_ws_client::JsonRpcWsClient;
-    ///
-    /// // MyRequest is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Serialize trait.
-    /// #[derive(Serialize, Debug)]
-    /// struct MyRequest {
-    ///     jsonrpc: String,
-    ///     method: String,
-    ///     params: Vec<String>,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyRequest {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// // MyResponse is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Deserialize trait.
-    /// #[derive(Deserialize, Debug)]
-    /// struct MyResponse {
-    ///     jsonrpc: String,
-    ///     result: String,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyResponse {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// let client = JsonRpcWsClient::<MyRequest, MyResponse>::new("wss://example.com/websocket".to_string(), None, None).await.unwrap();
-    ///
-    /// let response = client.recv().await.unwrap();
-    ///
-    /// println!("{:?}", response);
-    /// ```
     pub async fn recv(&mut self) -> Option<RES> {
         match self.ws_reader.recv().await {
             Some(message) => Some(message),
@@ -429,62 +265,6 @@ where
     
 
     /// Sends a message to the WebSocket server.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use jsonrpc_ws_client::JsonRpcWsClient;
-    ///
-    /// // MyRequest is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Serialize trait.
-    /// #[derive(Serialize, Debug)]
-    /// struct MyRequest {
-    ///     jsonrpc: String,
-    ///     method: String,
-    ///     params: Vec<String>,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyRequest {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// // MyResponse is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Deserialize trait.
-    /// #[derive(Deserialize, Debug)]
-    /// struct MyResponse {
-    ///     jsonrpc: String,
-    ///     result: String,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyResponse {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// let client = JsonRpcWsClient::<MyRequest, MyResponse>::new("wss://example.com/websocket".to_string(), None, None).await.unwrap();
-    ///
-    /// let request = MyRequest {
-    ///     jsonrpc: "2.0".to_string(),
-    ///     method: "my_method".to_string(),
-    ///     params: vec!["param1".to_string(), "param2".to_string()],
-    ///     id: None,
-    /// };
-    ///
-    /// client.send(request).await.unwrap();
-    /// ```
     pub async fn send(&mut self, message: REQ) -> Result<(), SendError<REQ>> {
         self.ws_writer.send(message).await?;
         Ok(())
@@ -492,64 +272,6 @@ where
     
 
     /// Sends a message to the WebSocket server and waits for a response.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use jsonrpc_ws_client::JsonRpcWsClient;
-    ///
-    /// // MyRequest is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Serialize trait.
-    /// #[derive(Serialize, Debug)]
-    /// struct MyRequest {
-    ///     jsonrpc: String,
-    ///     method: String,
-    ///     params: Vec<String>,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyRequest {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// // MyResponse is a struct that you need to create yourself.
-    /// // It needs to implement the JsonRpcMessage trait and the serde Deserialize trait.
-    /// #[derive(Deserialize, Debug)]
-    /// struct MyResponse {
-    ///     jsonrpc: String,
-    ///     result: String,
-    ///     id: Option<u32>,
-    /// }
-    ///
-    /// impl JsonRpcMessage for MyResponse {
-    ///     fn id(&self) -> Option<u32> {
-    ///         self.id
-    ///     }
-    ///
-    ///     fn set_id(&mut self, id: u32) {
-    ///         self.id = Some(id);
-    ///     }
-    /// }
-    ///
-    /// let client = JsonRpcWsClient::<MyRequest, MyResponse>::new("wss://example.com/websocket".to_string(), None, None).await.unwrap();
-    ///
-    /// let request = MyRequest {
-    ///     jsonrpc: "2.0".to_string(),
-    ///     method: "my_method".to_string(),
-    ///     params: vec!["param1".to_string(), "param2".to_string()],
-    ///     id: None,
-    /// };
-    ///
-    /// let response = client.send_listen(request).await.unwrap();
-    ///
-    /// println!("{:?}", response);
-    /// ```
     pub async fn send_listen(&mut self, mut message: REQ) -> Result<RES, Box<dyn std::error::Error>> {
         let id = self.id_counter.fetch_add(1, Ordering::SeqCst) as u32;
         message.set_id(id);

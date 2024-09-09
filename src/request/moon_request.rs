@@ -12,7 +12,7 @@ use crate::{
 /// # Examples
 ///
 /// ```rust
-/// use moonrequest::MoonRequest;
+/// use moonsock::{MoonRequest, MoonMethod, MoonParam};
 ///
 /// let request = MoonRequest::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: "G28".to_string() }));
 ///
@@ -77,7 +77,7 @@ impl MoonRequest {
     /// # Examples
     ///
     /// ```rust
-    /// use moonrequest::MoonRequest;
+    /// use moonsock::{MoonRequest, MoonMethod, MoonParam};
     ///
     /// let request = MoonRequest::new(MoonMethod::PrinterGcodeScript, Some(MoonParam::GcodeScript { script: "G28".to_string() }));
     ///
@@ -98,7 +98,7 @@ impl MoonRequest {
     /// # Examples
     ///
     /// ```rust
-    /// use moonrequest::MoonRequest;
+    /// use moonsock::MoonRequest;
     ///
     /// let request = MoonRequest::gcode("G28".to_string());
     ///
