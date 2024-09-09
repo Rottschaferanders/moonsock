@@ -43,7 +43,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # version = "0.7"
 # features = ["upgrade"]
 
-jsonrpc-message-derive = { git = "https://github.com/Rottschaferanders/jsonrpc-message-derive.git" }
+# jsonrpc-message-derive = { git = "https://github.com/Rottschaferanders/jsonrpc-message-derive.git" }
 console-subscriber = "0.3.0"
 
 
